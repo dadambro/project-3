@@ -9,32 +9,158 @@ fluidPage(
       "About",
       tabPanel("Start here!",
                h3("Welcome!"),
-               "The purpose of this app is to explore whether or not one can predict a Pokemon's typing based on its base stats.",
+               "The purpose of this app is to explore whether or not one can 
+               predict a Pokemon's typing based on its base stats.",
                h4("Data Exploration"),
-               "These tabs allows for graphical and numerical exploration of Pokemon types and base stats. Play around as you see fit, generate figures/summaries, and see if certain stats seem to associate with certain types. Use this info to inform your model!",
+               "These tabs allows for graphical and numerical exploration of 
+               Pokemon types and base stats. Play around as you see fit, 
+               generate figures/summaries, and see if certain stats seem to 
+               associate with certain types. Use this info to inform your model!",
                h4("Modeling"),
-               "These tabs provide basic information about some of the modeling approaches, and allows you to design, fit, and train a model to predict Pokemon type. Finally, you can put your model to the test to see if it can correctly predict a Pokemon's typing.",
+               "These tabs provide basic information about some of the modeling 
+               approaches, and allows you to design, fit, and train a model to 
+               predict Pokemon type. Finally, you can put your model to the test
+               to see if it can correctly predict a Pokemon's typing.",
                h4("Subset and Export"),
-               "Create your very own subset of Pokemon data, export it, and use it as you see fit!",
+               "Create your very own subset of Pokemon data, export it, and use 
+               it as you see fit!",
                br(),
                br(),
-               "Note, the radio buttons at the bottom allows you to filter the data used by generation."
+               "Note, the radio buttons at the bottom allows you to filter the 
+               data used by generation. As the Pokemon franchise has expanded, 
+               one might expect certain trends related to base stats and type 
+               seen in earlier games (e.g., 'Electric Pokemon have high speed!') 
+               to become weaker, as more diverse Pokemon with various typing/stat 
+               combinations are introduced into the game. The radio buttons 
+               allow one to explore this idea by seeing if limiting the dataset 
+               causes trends to become more apparent, models to perform 
+               differently, etc."
                ),
       "----------",
       
       "Data Exploration",
       tabPanel("Graphical Summaries",
-               h2("This panel will allow the user to generate graphical summaries of the data")),
+               plotOutput("scatter"),
+               selectInput("x.axis", "X-axis Variable",
+                           c("HP" = "hp", 
+                             "Attack" = "attack",
+                             "Defense" = "defense",
+                             "Special Attack" = "special.attack",
+                             "Special Defense" = "special.defense",
+                             "Speed" = "speed"
+                             )),
+               selectInput("y.axis", "Y-axis Variable",
+                           c("HP" = "hp", 
+                             "Attack" = "attack",
+                             "Defense" = "defense",
+                             "Special Attack" = "special.attack",
+                             "Special Defense" = "special.defense",
+                             "Speed" = "speed"
+                           )),
+               checkboxInput("colorcode", "Color points by type?"),
+               conditionalPanel(condition = "input.colorcode == 1",
+                                radioButtons("colorcode2", "Select type",
+                                             c("Primary type" = "type1",
+                                               "Secondary type" = "type2"))),
+               conditionalPanel(condition = "input.colorcode2 == 'type2'",
+                                "NOTE! Not all Pokemon have a secondary type. These Pokemon appear in the graph with a type of 'NA'")),
       
       tabPanel("Numerical Summaries",
-               h2("This panel will allow the user to generate numeric summaries of the data")),
+               selectInput("var", "Select base stat",
+                           c("HP" = "hp", 
+                             "Attack" = "attack",
+                             "Defense" = "defense",
+                             "Special Attack" = "special.attack",
+                             "Special Defense" = "special.defense",
+                             "Speed" = "speed"
+                           )),
+               radioButtons("tableType", "Select type to summarize by:",
+                            c("Primary type" = "type1",
+                              "Secondary type" = "type2")),
+               dataTableOutput("summaryTable")
+               ),
       
       "Modeling",
       tabPanel("Modeling Info",
                h2("This panel will provide general information about modeling")),
       
       tabPanel("Model Fitting",
-               h2("This panel will allow the user to fit models")),
+               numericInput("seed", "Set seed (optional):",
+                            1337,
+                            min = -1*.Machine$integer.max,
+                            max = .Machine$integer.max),
+               selectInput("myType", "Choose the type you wish to predict:",
+                           c("Bug" = "bug",
+                             "Dark" = "dark",
+                             "Dragon" = "dragon",
+                             "Electric" = "electric",
+                             "Fairy" = "fairy",
+                             "Fighting" = "fighting",
+                             "Fire" = "fire",
+                             "Flying" = "flying",
+                             "Ghost" = "ghost",
+                             "Grass" = "grass",
+                             "Ground" = "ground",
+                             "Ice" = "ice",
+                             "Normal" = "normal",
+                             "Poison" = "poison",
+                             "Psychic" = "psychic",
+                             "Rock" = "rock",
+                             "Steel" = "steel",
+                             "Water" = "water")
+                           ),
+               
+               sliderInput("trainSplit", "Percent of data to train on:",
+                           min = 5,
+                           max = 95,
+                           value = 60),
+               
+               selectInput("myModel", "Choose the model you wish to build:",
+                           c("Linear" = "lm",
+                             "Decision tree" = "tree",
+                             "Random forest" = "randForest")),
+               
+               conditionalPanel(condition = "input.myModel == 'lm'",
+                                checkboxGroupInput("lmVars", "Select linear model variables",
+                                                  c("HP" = "hp", 
+                                                    "Attack" = "attack",
+                                                    "Defense" = "defense",
+                                                    "Special Attack" = "special.attack",
+                                                    "Special Defense" = "special.defense",
+                                                    "Speed" = "speed"
+                                            ))),
+               
+               conditionalPanel(condition = "input.myModel == 'tree'",
+                                checkboxGroupInput("treeVars", "Select decision tree variables",
+                                                   c("HP" = "hp", 
+                                                     "Attack" = "attack",
+                                                     "Defense" = "defense",
+                                                     "Special Attack" = "special.attack",
+                                                     "Special Defense" = "special.defense",
+                                                     "Speed" = "speed"
+                                                   )),
+                                numericInput("treecp", "Select complexity parameter value:",
+                                             0.01,
+                                             min = 0.001,
+                                             max = 0.1,
+                                             step = 0.001)),
+               
+               conditionalPanel(condition = "input.myModel == 'randForest'",
+                                checkboxGroupInput("randForestVars", "Select random forest variables:",
+                                                   c("HP" = "hp", 
+                                                     "Attack" = "attack",
+                                                     "Defense" = "defense",
+                                                     "Special Attack" = "special.attack",
+                                                     "Special Defense" = "special.defense",
+                                                     "Speed" = "speed"
+                                                   )),
+                                numericInput("randForestmtry", "Select mtry value:",
+                                             4,
+                                             min = 1,
+                                             max = 6),
+                                "Note! Selecting an mtry value equal to the total number of variables is bagging, not a true random forest!"),
+               actionButton("buildModels", "Build models!")
+               ),
       
       tabPanel("Prediction",
                h2("This panel will allow the user to run predictions with their fit models")),
@@ -47,14 +173,14 @@ fluidPage(
     sidebarPanel(radioButtons(
       "gens",
       "Include Pokemon through Generation:",
-      c("I" = "gen1",
-        "II" = "gen2",
-        "III" = "gen3",
-        "IV" = "gen4",
-        "V" = "gen5",
-        "VI" = "gen6",
-        "VII" = "gen7",
-        "VIII" = "gen8",
-        "IX" = "gen9")
+      c("I" = "151",
+        "II" = "251",
+        "III" = "386",
+        "IV" = "493",
+        "V" = "649",
+        "VI" = "721",
+        "VII" = "809",
+        "VIII" = "905",
+        "IX" = "1010")
     ))
 )
