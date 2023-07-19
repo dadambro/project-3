@@ -10,15 +10,23 @@ function(input, output, session) {
 #Create scatterplot
    output$scatter <- renderPlot({
     newData <- myData %>% filter(id.number <= as.numeric(input$gens))
+    newData <- newData %>% 
+      mutate(newVar = if_else(type1 == input$colorcode2 | type2 == as.character(input$colorcode2), 
+                              str_to_title(input$colorcode2) , 
+                              paste0("Not ", str_to_title(input$colorcode2)), 
+                              paste0("Not ", str_to_title(input$colorcode2))))
+    
     g <- ggplot(newData, aes_string(x = input$x.axis, y = input$y.axis))
     h <- geom_point()
-    i <- geom_point(aes_string(col = input$colorcode2))
+    i <- geom_point(aes_string(col = as.factor(newData$newVar)))
     
     #Conditionally update plot based on color code selections
     if(input$colorcode){
-      g + i}
+      g + i + geom_smooth(method = "lm", se = FALSE, aes(col = newVar)) + 
+        theme_minimal() + theme(legend.title=element_blank())
+      }
       else{
-        g + h
+        g + h + theme_minimal()
       }})
    
 #Create numeric summary

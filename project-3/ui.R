@@ -57,13 +57,28 @@ fluidPage(
                              "Special Defense" = "special.defense",
                              "Speed" = "speed"
                            )),
-               checkboxInput("colorcode", "Color points by type?"),
+               checkboxInput("colorcode", "Color points by a specific type?"),
                conditionalPanel(condition = "input.colorcode == 1",
-                                radioButtons("colorcode2", "Select type",
-                                             c("Primary type" = "type1",
-                                               "Secondary type" = "type2"))),
-               conditionalPanel(condition = "input.colorcode2 == 'type2'",
-                                "NOTE! Not all Pokemon have a secondary type. These Pokemon appear in the graph with a type of 'NA'")),
+                                selectInput("colorcode2", "Select type",
+                                             c("Bug" = "bug",
+                                               "Dark" = "dark",
+                                               "Dragon" = "dragon",
+                                               "Electric" = "electric",
+                                               "Fairy" = "fairy",
+                                               "Fighting" = "fighting",
+                                               "Fire" = "fire",
+                                               "Flying" = "flying",
+                                               "Ghost" = "ghost",
+                                               "Grass" = "grass",
+                                               "Ground" = "ground",
+                                               "Ice" = "ice",
+                                               "Normal" = "normal",
+                                               "Poison" = "poison",
+                                               "Psychic" = "psychic",
+                                               "Rock" = "rock",
+                                               "Steel" = "steel",
+                                               "Water" = "water"))),
+               ),
       
       tabPanel("Numerical Summaries",
                selectInput("var", "Select base stat",
@@ -109,6 +124,30 @@ fluidPage(
                              "Steel" = "steel",
                              "Water" = "water")
                            ),
+               conditionalPanel(condition = "input.myType == 'dark'",
+                                "Note: Dark-type Pokemon do not exist in Generation I.
+                                If filtering by generation with the radio buttons below,
+                                make sure you are including Pokemon through at least Generation II.",
+                                br()
+               ),
+               conditionalPanel(condition = "input.myType == 'fairy'",
+                                "Note: Fairy-type Pokemon were introduced in Generation VI,
+                                although some Pokemon in prior generations were retroactively
+                                assigned this typing after its introduction.
+                                If filtering by generation with the radio buttons below,
+                                better results may be had by including Pokemon through 
+                                at least Generation VI.",
+                                br()
+               ),
+               conditionalPanel(condition = "input.myType == 'steel'",
+                                "Note: Steel-type Pokemon were introduced in Generation II,
+                                although some Pokemon in Generation I were retroactively
+                                assigned this typing after its introduction.
+                                If filtering by generation with the radio buttons below,
+                                better results may be had by including Pokemon through 
+                                at least Generation II.",
+                                br()
+               ),
                
                sliderInput("trainSplit", "Percent of data to train on:",
                            min = 5,
