@@ -86,7 +86,7 @@ fluidPage(
                                                "Psychic" = "psychic",
                                                "Rock" = "rock",
                                                "Steel" = "steel",
-                                               "Water" = "water"))),
+                                               "Water" = "water")))
                ),
                conditionalPanel(condition = "input.displayGraph == 'freqpoly'",
                                 plotOutput("freqPoly"),
@@ -120,7 +120,7 @@ fluidPage(
                                                                "Psychic" = "psychic",
                                                                "Rock" = "rock",
                                                                "Steel" = "steel",
-                                                               "Water" = "water"))),
+                                                               "Water" = "water")))
                )),
       
       tabPanel("Numerical Summaries",
@@ -247,10 +247,12 @@ fluidPage(
                                 numericInput("randForestmtry", "Select mtry value:",
                                              4,
                                              min = 1,
-                                             max = 6),
-                                "Note! Selecting an mtry value equal to the total number of variables is bagging, not a true random forest!"),
+                                             max = 8,
+                                "Note! Selecting an mtry value equal to the total number of variables is bagging, not a true random forest!")),
                actionButton("buildModels", "Build models!"),
-               verbatimTextOutput("modz")
+               
+               uiOutput("trainModelTitle"),
+               tableOutput("trainModelOutput")
                ),
       
       tabPanel("Prediction",
@@ -272,6 +274,7 @@ fluidPage(
         "VI" = "721",
         "VII" = "809",
         "VIII" = "905",
-        "IX" = "1010")
+        "IX" = "1010"),
+      selected = "1010"
     ))
 )
