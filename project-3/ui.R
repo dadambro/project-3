@@ -34,8 +34,8 @@ fluidPage(
                combinations are introduced into the game. The radio buttons 
                allow one to explore this idea by seeing if limiting the dataset 
                causes trends to become more apparent, models to perform 
-               differently, etc."
-               ),
+               differently, etc.",
+      actionButton("importData", "Import Data!")),
       "----------",
       
       "Data Exploration",
@@ -231,7 +231,9 @@ fluidPage(
                                              0.01,
                                              min = 0.001,
                                              max = 0.1,
-                                             step = 0.001)),
+                                             step = 0.001),
+                                h4("OR..."),
+                                checkboxInput("cpAuto", "Auto-tune complexity parameter")),
                
                conditionalPanel(condition = "input.myModel == 'randForest'",
                                 checkboxGroupInput("randForestVars", "Select random forest variables:",
@@ -247,12 +249,17 @@ fluidPage(
                                 numericInput("randForestmtry", "Select mtry value:",
                                              4,
                                              min = 1,
-                                             max = 8,
-                                "Note! Selecting an mtry value equal to the total number of variables is bagging, not a true random forest!")),
+                                             max = 8),
+                                h4("OR..."),
+                                checkboxInput("mtryAuto", "Auto-tune mtry")),
                actionButton("buildModels", "Build models!"),
                
                uiOutput("trainModelTitle"),
-               tableOutput("trainModelOutput")
+               tableOutput("trainModelOutput"),
+               uiOutput("trainModelFootnote"),
+               #tableOutput("glmConfusionMatrix"),
+               uiOutput("testModelTitle"),
+               tableOutput("testStats")
                ),
       
       tabPanel("Prediction",

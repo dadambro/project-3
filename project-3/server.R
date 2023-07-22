@@ -4,14 +4,14 @@ library(DT)
 library(caret)
 library(randomForest)
 
+#Read in dataset
+myData <- read_csv("./pokemon.csv")
 
-
-# Create graphs
 function(input, output, session) {
 
 #Create figures  
 ##Create scatterplot
-   output$scatter <- renderPlot({
+    output$scatter <- renderPlot({
     newData <- myData %>% filter(id.number <= as.numeric(input$gens))
     newData <- newData %>% 
       mutate(newVar = if_else(type1 == input$colorcode2 | type2 == as.character(input$colorcode2), 
@@ -40,11 +40,12 @@ function(input, output, session) {
                                str_to_title(input$colorcode4) , 
                                paste0("Not ", str_to_title(input$colorcode4)), 
                                paste0("Not ", str_to_title(input$colorcode4))))
+     
      g <- ggplot(newData, aes_string(x = input$x.axis2, color = as.factor(newData$newVar)))
      h <- ggplot(newData, aes_string(x = input$x.axis2))
      i <- geom_freqpoly(stat = "density")
 
-          if(input$colorcode3){
+    if(input$colorcode3){
        g + i + theme_minimal() + theme(legend.title=element_blank())
      }
      else{
@@ -82,90 +83,150 @@ function(input, output, session) {
       h3("Warning!: All models need at least one variable selected prior to building!")
       ) 
   }
+  else if(input$myType == "dark" & input$gens == "151"){
+    
+    output$trainModelTitle <- renderUI(
+      h4("Warning!: No Dark-type Pokemon exist in Generation I. Please choose another type, or include Pokemon from Generation II +")
+    ) }
   
   #Proceed with model building provided each model has at least 1 variable selected
   else{
   #Add status bar
   withProgress(message = 'Building models...',
                value = 0, {
-                 for (i in 1:15) {
-                   incProgress(1/15)
-                   Sys.sleep(0.25)
-                 }
+                 #Compile parameters for models
+                 trainSplit <- as.numeric(input$trainSplit)*0.01
+                 
+                 cp <- if(input$cpAuto){
+                          seq(0.001, 0.1, 0.001)}
+                      else{as.numeric(input$treecp)}
+                 
+                 mtry <- if(input$mtryAuto){
+                   1:(length(input$randForestVars) - 1)}
+                 else{as.numeric(input$randForestmtry)}
+                 
+                 #Generate overall dataset
+                 modData <- myData %>% filter(id.number <= as.numeric(input$gens))
+                 modData <- modData %>% 
+                   mutate(myVar = if_else(type1 == input$myType | type2 == input$myType, 
+                                          str_to_title(input$myType) , 
+                                          paste0("Not_", str_to_title(input$myType)), 
+                                          paste0("Not_", str_to_title(input$myType))))
+                 modData$myVar <- as.factor(modData$myVar)
+                 modData <- modData %>% select(height:myVar)
+                 
+                 #Set seed
+                 set.seed(as.numeric(input$seed))
+                 
+                 #Create overall training and test sets
+                 trainIndex <- createDataPartition(modData$myVar, p = trainSplit, list = FALSE)
+                 modTrain <- modData[trainIndex,]
+                 modTest <- modData[-trainIndex,]
+                 
+                 #Subset for glm
+                 glmmodTrain <- modTrain %>% select(myVar, all_of(input$lmVars))
+                 glmmodTest <- modTest %>% select(myVar, all_of(input$lmVars))
+                 
+                 #Subset for decision tree
+                 treemodTrain <- modTrain %>% select(myVar, all_of(input$treeVars))
+                 treemodTest <- modTest %>% select(myVar, all_of(input$treeVars))
+                 
+                 #Subset for random forest
+                 rfmodTrain <- modTrain %>% select(myVar, all_of(input$randForestVars))
+                 rfmodTest <- modTest %>% select(myVar, all_of(input$randForestVars))
+                 
+                 incProgress(0.25, detail = "Training GLM")
+                 
+                 #Train generalized linear model
+                 genLinearFit <- train(myVar ~ ., data = glmmodTrain,
+                                       method = "glm",
+                                       family = "binomial",
+                                       preProcess = c("center", "scale"),
+                                       trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3)
+                 )
+                #Run on test data
+                genLinearPredict <- predict(genLinearFit, newdata = glmmodTest)
+                
+                #Make test data output
+                genLinearCM <- confusionMatrix(genLinearPredict, glmmodTest$myVar, positive = str_to_title(input$myType))
+                 
+                 
+                 incProgress(0.25, detail = "Training Decision Tree")
+                 
+                 #Train decision tree model
+                 classTreeFit <- train(myVar ~ ., data = treemodTrain, 
+                                       method = "rpart",
+                                       preProcess = c("center", "scale"),
+                                       trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3),
+                                       tuneGrid = data.frame(cp = cp)
+                 )
+                 #Run on test data
+                 classTreePredict <- predict(classTreeFit, newdata = treemodTest)
+                 
+                 #Make test data output
+                 classTreeCM <- confusionMatrix(classTreePredict, treemodTest$myVar, positive = str_to_title(input$myType))
+                 
+                 incProgress(0.25, detail = "Training Random Forest")
+                 
+                 #Train random forest model
+                 randomForestFit <- train(myVar ~ ., data = rfmodTrain, 
+                                          method = "rf",
+                                          preProcess = c("center", "scale"),
+                                          trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3),
+                                          tuneGrid = data.frame(mtry = mtry)
+                 )
+                 
+                 #Run on test data
+                 randomForestPredict <- predict(randomForestFit, newdata = rfmodTest)
+                 
+                 #Make test data output
+                 randomForestCM <- confusionMatrix(randomForestPredict, rfmodTest$myVar, positive = str_to_title(input$myType))
+                 
+                 incProgress(0.25, detail = "Making output")
+                 
+                 #Compile results from training set, make into a table for output
+                 genLinearTable <- genLinearFit$results %>% 
+                   mutate(Model = "Generalized Linear", `Variable(s) Included` = 
+                            paste(colnames(select(glmmodTrain, -1)), collapse = " "), .before = parameter) %>% select(-3)
+                 
+                 classTreeExtract <- classTreeFit$results %>% filter(cp == as.numeric(classTreeFit$bestTune))
+                 classTreeTable <- classTreeExtract %>% 
+                   mutate(Model = "Classification Tree", `Variable(s) Included` = 
+                            paste(colnames(select(treemodTrain, -1)), collapse = " "), .before = cp) %>% select(-3)
+                 
+                 randomForestExtract <- randomForestFit$results %>% filter(mtry == as.numeric(randomForestFit$bestTune))
+                 randomForestTable <- randomForestExtract %>% 
+                   mutate(Model = "Random Forest", `Variable(s) Included` = 
+                            paste(colnames(select(rfmodTrain, -1)), collapse = " "), .before = mtry) %>% select(-3)
+                 
+                 output$trainModelTitle <- renderUI({isolate(h5(strong(paste0("Model performance on training data for type '", 
+                                                                              input$myType, "' using ", input$gens, 
+                                                                              " out of a possible 1010 Pokemon:"))))})
+                 
+                 output$trainModelOutput <- renderTable({rbind(genLinearTable, classTreeTable, randomForestTable)})
+                 
+                 output$trainModelFootnote <- renderUI({paste0("The classification tree cp was: ", classTreeFit$bestTune[,1], 
+                                                               "; the random forest mtry was: ", randomForestFit$bestTune[,1])})
+                 
+                 output$glmConfusionMatrix <- renderTable({genLinearCM$table})
+                 
+                 genLinearTestVars <- genLinearCM$byClass[c(1,2,5:7)]
+                 classTreeTestVars <- classTreeCM$byClass[c(1,2,5:7)]
+                 randomForestTestVars <- randomForestCM$byClass[c(1,2,5:7)]
+                 
+                 testStatsData <- data.frame(rbind(genLinearTestVars, classTreeTestVars, randomForestTestVars))
+                 testStatsTable <- testStatsData %>% 
+                   mutate(Model = c("Generalized Linear", "Classification Tree", "Random Forest"), .before = Sensitivity)
+                 
+                 output$testStats <- renderTable({testStatsTable})
+                 
+                 output$testModelTitle <- renderUI({isolate(h5(strong(paste0("Model performance on test data for type '", 
+                                                                             input$myType, "':"))))})
                })
-  
-  #Compile parameters for models
-  trainSplit <- as.numeric(input$trainSplit)*0.01
-  cp <- as.numeric(input$treecp)
-  mtry <- as.numeric(input$randForestmtry)
-  
-  #Generate overall dataset
-  modData <- myData %>% filter(id.number <= as.numeric(input$gens))
-  modData <- modData %>% 
-    mutate(myVar = if_else(type1 == input$myType | type2 == input$myType, 
-                            str_to_title(input$myType) , 
-                            paste0("Not_", str_to_title(input$myType)), 
-                            paste0("Not_", str_to_title(input$myType))))
-  modData$myVar <- as.factor(modData$myVar)
-  modData <- modData %>% select(height:myVar)
-  
-  #Set seed
-  set.seed(as.numeric(input$seed))
-  
-  #Create overall training and test sets
-  trainIndex <- createDataPartition(modData$myVar, p = trainSplit, list = FALSE)
-  modTrain <- modData[trainIndex,]
-  modTest <- modData[-trainIndex,]
-  
-  #Subset for glm
-  glmmodTrain <- modTrain %>% select(myVar, all_of(input$lmVars))
-  glmmodTest <- modTest %>% select(myVar, all_of(input$lmVars))
- 
-  #Subset for decision tree
-  treemodTrain <- modTrain %>% select(myVar, all_of(input$treeVars))
-  treemodTest <- modTest %>% select(myVar, all_of(input$treeVars))
- 
-  #Subset for random forest
-  rfmodTrain <- modTrain %>% select(myVar, all_of(input$randForestVars))
-  rfmmodTest <- modTest %>% select(myVar, all_of(input$randForestVars))
-  
-  #Train generalized linear model
-  genLinearFit <- train(myVar ~ ., data = glmmodTrain,
-                        method = "glm",
-                        family = "binomial",
-                        preProcess = c("center", "scale"),
-                        trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3)
-                        )
-  
-  #Train decision tree model
-  classTreeFit <- train(myVar ~ ., data = treemodTrain, 
-                          method = "rpart",
-                          preProcess = c("center", "scale"),
-                          trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3),
-                          tuneGrid = data.frame(cp)
-                        )
-  
-  #Train random forest model
-  randomForestFit <- train(myVar ~ ., data = rfmodTrain, 
-                             method = "rf",
-                             preProcess = c("center", "scale"),
-                             trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3),
-                             tuneGrid = data.frame(mtry)
-                           )
-  
-  #Compile results from training set, make into a table for output
-  genLinearTable <- genLinearFit$results %>% mutate(Model = "Generalized Linear", `Variable(s) Included` = paste(colnames(select(glmmodTrain, -1)), collapse = " "), .before = parameter) %>% select(-3)
-  classTreeTable <- classTreeFit$results %>% mutate(Model = "Classification Tree", `Variable(s) Included` = paste(colnames(select(treemodTrain, -1)), collapse = " "), .before = cp) %>% select(-3)
-  randomForestTable <- randomForestFit$results %>% mutate(Model = "Random Forest", `Variable(s) Included` = paste(colnames(select(rfmodTrain, -1)), collapse = " "), .before = mtry) %>% select(-3)
-  
-  output$trainModelTitle <- renderUI({isolate(h5(strong(paste0("Model accuracy on training data for type '", input$myType, "' using ", input$gens, " out of a possible 1010 Pokemon:"))))})
-  output$trainModelOutput <- renderTable({rbind(genLinearTable, classTreeTable, randomForestTable)})
-  
-    
 }
   }
 )
-  }
+}
 )
 ##########
 
