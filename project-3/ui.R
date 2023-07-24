@@ -10,23 +10,31 @@ fluidPage(
       tabPanel("Start here!",
                h3("Welcome!"),
                "The purpose of this app is to explore whether or not one can 
-               predict a Pokemon's typing based on its base stats, height, and weight.",
+               predict a Pokemon's typing based on its base stats, height, and weight. 
+               This is accomplished by selecting a type, determining if each Pokemon's
+               primary or secondary type IS said type, and binarily classifying 
+               it as 'Type' or 'Not_Type'. The models then attempt to predict this binary
+                membership for each Pokemon",
+               
                h4("Data Exploration"),
                "These tabs allows for graphical and numerical exploration of 
                Pokemon types and base stats. Play around as you see fit, 
                generate figures/summaries, and see if certain stats/heights/weights seem to 
-               associate with certain types. Use this info to inform your model!",
+               associate with certain types.",
+               
                h4("Modeling"),
-               "These tabs provide basic information about some of the modeling 
+               "These tabs provide some basic information about the modeling 
                approaches, and allows you to design, fit, and train a model to 
-               predict Pokemon type. Finally, you can put your model to the test
+               predict Pokemon type. Finally, you can put your models to the test
                to see if it can correctly predict a Pokemon's typing.",
+               
                h4("Subset and Export"),
                "Create your very own subset of Pokemon data, export it, and use 
                it as you see fit!",
                br(),
                br(),
-               "Note, the radio buttons at the bottom allows you to filter the 
+               h4("General notes"),
+               "The radio buttons at the bottom allows you to filter the 
                data used by generation. As the Pokemon franchise has expanded, 
                one might expect certain trends related to base stats and type 
                seen in earlier games (e.g., 'Electric Pokemon have high speed!') 
@@ -34,13 +42,27 @@ fluidPage(
                combinations are introduced into the game. The radio buttons 
                allow one to explore this idea by seeing if limiting the dataset 
                causes trends to become more apparent, models to perform 
-               differently, etc."
-               ),
+               differently, etc.",
+               br(),
+               br(),
+               "Below is a random image of a Pokemon retrieved from the web. 
+               Note that if the image appears to be broken, check your Internet 
+               connection/try running this app externally in a browser instead of 
+               within R. A new image can be retrieved by clicking the button below. 
+               The radio buttons controlling 'Generation' also work on the picture as well;
+                selecting 'Generation I' will only return images from Pokemon etc.",
+               br(),
+               br(),
+               actionButton("newPic", "Generate new picture!"),
+               p(),
+               uiOutput("picName"),
+               uiOutput("randomPic")
+                              ),
       "----------",
       
       "Data Exploration",
       tabPanel("Graphical Summaries",
-               uiOutput("pokes"),
+               h3("Graphical Summaries"),
                radioButtons("displayGraph", "Choose graph to create:",
                             c("Scatter plot" = "scatter",
                               "Frequency polygon" = "freqpoly")),
@@ -125,6 +147,7 @@ fluidPage(
                )),
       
       tabPanel("Numerical Summaries",
+               h3("Numerical Summaries"),
                selectInput("var", "Select base stat",
                            c("Height" = "height",
                              "Weight" = "weight",
@@ -146,6 +169,7 @@ fluidPage(
                h2("This panel will provide general information about modeling")),
       
       tabPanel("Model Fitting",
+               h3("Model Fitting"),
                numericInput("seed", "Set seed (optional):",
                             1337,
                             min = -1*.Machine$integer.max,
@@ -198,9 +222,9 @@ fluidPage(
                sliderInput("trainSplit", "Percent of data to train on:",
                            min = 5,
                            max = 95,
-                           value = 60),
+                           value = 80),
                
-               selectInput("myModel", "Choose the model you wish to build:",
+               selectInput("myModel", "Choose the model you wish to edit:",
                            c("Linear" = "lm",
                              "Decision tree" = "tree",
                              "Random forest" = "randForest")),
@@ -248,7 +272,7 @@ fluidPage(
                                                      "Speed" = "speed"
                                                    )),
                                 numericInput("randForestmtry", "Select mtry value:",
-                                             4,
+                                             1,
                                              min = 1,
                                              max = 8),
                                 h4("OR..."),
@@ -258,12 +282,27 @@ fluidPage(
                uiOutput("trainModelTitle"),
                tableOutput("trainModelOutput"),
                uiOutput("trainModelFootnote"),
-               #tableOutput("glmConfusionMatrix"),
+               br(),
                uiOutput("testModelTitle"),
-               tableOutput("testStats")
+               tableOutput("testStats"),
+               br(),
+               selectInput("viewMoreOutput", "View more output for model:",
+                           c("Generalized Linear" = "glm",
+                             "Classification Tree" = "ct",
+                             "Random Forest" = "rf")),
+               conditionalPanel("input.viewMoreOutput == 'glm'",
+                                verbatimTextOutput("confusionMatrixGLM"),
+                                verbatimTextOutput("modelSummaryGLM")),
+               conditionalPanel("input.viewMoreOutput == 'ct'",
+                                verbatimTextOutput("confusionMatrixClassTree"),
+                                verbatimTextOutput("variableImportanceClassTree")),
+               conditionalPanel("input.viewMoreOutput == 'rf'",
+                                verbatimTextOutput("confusionMatrixRandomForest"),
+                                verbatimTextOutput("variableImportanceRandomForest"))
                ),
       
       tabPanel("Prediction",
+               h3("Prediction"),
                conditionalPanel("input.buildModels == 0",
                h2("Build models first!")
                ),
@@ -275,7 +314,7 @@ fluidPage(
                                 conditionalPanel("input.predictSelect == 'custom'",
                                                  div("Customize height/weight and base stats to see what the various models will predict. 
                                                      Maximum and minimum slider values reflect the overall maximum and minimum values for the 
-                                                     Pokemon used in building the models. Values are present at the overall median values."),
+                                                     Pokemon used in building the models (i.e., the selected Generation). Values are present at the overall median values."),
                                                  br(),
                                                   uiOutput("heightSlider"),
                                                   uiOutput("weightSlider"),
@@ -304,6 +343,7 @@ fluidPage(
       
       "Data",
       tabPanel("Subset and Export",
+               h3("Subset and Export"),
                h2("This panel will allow the user to subset and export the data as they see fit"),
                dataTableOutput("allData"),
                checkboxGroupInput("exportVars", "Select variables to include:",

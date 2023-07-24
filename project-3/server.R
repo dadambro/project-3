@@ -9,6 +9,24 @@ myData <- read_csv("./pokemon.csv")
 
 function(input, output, session) {
 
+#Create random image for landing page
+picNum <- sample(1:1010, 1)
+src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")
+output$randomPic <- renderUI({tags$img(src = src)})
+picNameData <- myData %>% filter(id.number == picNum)
+picName <- paste0("It's ", picNameData$name, "!")
+output$picName <- renderUI({h4(tags$strong(picName))})
+
+observeEvent(input$newPic, {
+  picNum <- sample(1:as.numeric(input$gens), 1)
+  src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")
+  output$randomPic <- renderUI({tags$img(src = src)})
+  picNameData <- myData %>% filter(id.number == picNum)
+  picName <- paste0("It's ", picNameData$name, "!")
+  output$picName <- renderUI({h4(tags$strong(picName))})
+})
+##########
+
 #Create figures  
 ##Create scatterplot
     output$scatter <- renderPlot({
@@ -88,6 +106,11 @@ function(input, output, session) {
     output$trainModelTitle <- renderUI(
       h4("Warning!: No Dark-type Pokemon exist in Generation I. Please choose another type, or include Pokemon from Generation II +")
     ) }
+  else if(as.numeric(input$randForestmtry) > length(input$randForestVars)){
+    
+    output$trainModelTitle <- renderUI(
+      h4("Warning!: mtry value for Random Forest is greater than the total number of variables! Please reduce this value, select more variables, or select 'auto-tune.' Note that setting mtry equal to the number of variables is technically 'bagging,' and not a random forest.")
+    ) }
   
   #Proceed with model building provided each model has at least 1 variable selected
   else{
@@ -156,7 +179,7 @@ function(input, output, session) {
                  #Train decision tree model
                  classTreeFit <<- train(myVar ~ ., data = treemodTrain, 
                                        method = "rpart",
-                                       preProcess = c("center", "scale"),
+                                       #preProcess = c("center", "scale"),
                                        trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3),
                                        tuneGrid = data.frame(cp = cp)
                  )
@@ -171,7 +194,7 @@ function(input, output, session) {
                  #Train random forest model
                  randomForestFit <<- train(myVar ~ ., data = rfmodTrain, 
                                           method = "rf",
-                                          preProcess = c("center", "scale"),
+                                          #preProcess = c("center", "scale"),
                                           trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3),
                                           tuneGrid = data.frame(mtry = mtry)
                  )
@@ -187,17 +210,17 @@ function(input, output, session) {
                  #Compile results from training set, make into a table for output
                  genLinearTable <- genLinearFit$results %>% 
                    mutate(Model = "Generalized Linear", `Variable(s) Included` = 
-                            paste(colnames(select(glmmodTrain, -1)), collapse = " "), .before = parameter) %>% select(-3)
+                            paste(colnames(select(glmmodTrain, -1)), collapse = " "), .before = parameter) %>% select(1,2,4)
                  
                  classTreeExtract <- classTreeFit$results %>% filter(cp == as.numeric(classTreeFit$bestTune))
                  classTreeTable <- classTreeExtract %>% 
                    mutate(Model = "Classification Tree", `Variable(s) Included` = 
-                            paste(colnames(select(treemodTrain, -1)), collapse = " "), .before = cp) %>% select(-3)
+                            paste(colnames(select(treemodTrain, -1)), collapse = " "), .before = cp) %>% select(1,2,4)
                  
                  randomForestExtract <- randomForestFit$results %>% filter(mtry == as.numeric(randomForestFit$bestTune))
                  randomForestTable <- randomForestExtract %>% 
                    mutate(Model = "Random Forest", `Variable(s) Included` = 
-                            paste(colnames(select(rfmodTrain, -1)), collapse = " "), .before = mtry) %>% select(-3)
+                            paste(colnames(select(rfmodTrain, -1)), collapse = " "), .before = mtry) %>% select(1,2,4)
                  
                  output$trainModelTitle <- renderUI({isolate(h5(strong(paste0("Model performance on training data for type '", 
                                                                               input$myType, "' using ", input$gens, 
@@ -208,7 +231,14 @@ function(input, output, session) {
                  output$trainModelFootnote <- renderUI({paste0("The classification tree cp was: ", classTreeFit$bestTune[,1], 
                                                                "; the random forest mtry was: ", randomForestFit$bestTune[,1])})
                  
-                 output$glmConfusionMatrix <- renderTable({genLinearCM$table})
+                 output$confusionMatrixGLM <- renderPrint({genLinearCM})
+                 output$modelSummaryGLM <- renderPrint({summary(genLinearFit$finalModel)})
+                 
+                 output$confusionMatrixClassTree <- renderPrint({classTreeCM})
+                 output$variableImportanceClassTree <- renderPrint({classTreeFit$finalModel$variable.importance})
+                 
+                 output$confusionMatrixRandomForest <- renderPrint({randomForestCM})
+                 output$variableImportanceRandomForest <- renderPrint({randomForestFit$finalModel$importance})
                  
                  genLinearTestVars <- genLinearCM$byClass[c(1,2,5:7)]
                  classTreeTestVars <- classTreeCM$byClass[c(1,2,5:7)]
@@ -222,6 +252,8 @@ function(input, output, session) {
                  
                  output$testModelTitle <- renderUI({isolate(h5(strong(paste0("Model performance on test data for type '", 
                                                                              input$myType, "':"))))})
+                 
+                 output$glmSummary <- renderPrint({summary(genLinearFit$finalModel)})
                  #Render UI objects for Predict tab
                  output$heightSlider <- renderUI(sliderInput("heightSlider", "Height:",
                                                              min = min(myNewData$height),
@@ -275,7 +307,7 @@ function(input, output, session) {
 ({observeEvent(input$predict, {
 
   
-
+##Custom variable values prediction
 if(input$predictSelect == "custom"){
 #Custom slider input
 customPoke <- data.frame(height = as.numeric(input$heightSlider),
@@ -305,8 +337,8 @@ customPokeTable <- data.frame(Model = c("Generalized Linear", "Classification Tr
 output$customPokeTable <- renderTable({customPokeTable})
 }
 
-else if(input$predictSelect == "myType"){
 #"Right" type Pokemon prediction
+else if(input$predictSelect == "myType"){
 rightTypePoke <- myData %>% filter(name == input$myTypeList)
 
 glmRightTypePoke <- rightTypePoke %>% select(all_of(input$lmVars))
@@ -326,8 +358,9 @@ rightTypePokeTable <- data.frame(Model = c("Generalized Linear", "Classification
 )
 output$rightTypePokeTable <- renderTable({rightTypePokeTable})
 }
-else{
+
 #"Wrong" type Pokemon prediction
+else{
 wrongTypePoke <- myData %>% filter(name == input$notMyTypeList)
 
 glmWrongTypePoke <- wrongTypePoke %>% select(all_of(input$lmVars))
@@ -349,6 +382,7 @@ output$wrongTypePokeTable <- renderTable({wrongTypePokeTable})
 }
 })
                })
+##########
    
 #Data export and subset
 output$allData <- renderDataTable({myData})
