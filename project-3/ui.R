@@ -34,12 +34,13 @@ fluidPage(
                combinations are introduced into the game. The radio buttons 
                allow one to explore this idea by seeing if limiting the dataset 
                causes trends to become more apparent, models to perform 
-               differently, etc.",
-      actionButton("importData", "Import Data!")),
+               differently, etc."
+               ),
       "----------",
       
       "Data Exploration",
       tabPanel("Graphical Summaries",
+               uiOutput("pokes"),
                radioButtons("displayGraph", "Choose graph to create:",
                             c("Scatter plot" = "scatter",
                               "Frequency polygon" = "freqpoly")),
@@ -55,7 +56,7 @@ fluidPage(
                              "Special Attack" = "special.attack",
                              "Special Defense" = "special.defense",
                              "Speed" = "speed"
-                             )),
+                           )),
                selectInput("y.axis", "Y-axis Variable",
                            c("Height" = "height",
                              "Weight" = "weight",
@@ -263,11 +264,50 @@ fluidPage(
                ),
       
       tabPanel("Prediction",
-               h2("This panel will allow the user to run predictions with their fit models")),
+               conditionalPanel("input.buildModels == 0",
+               h2("Build models first!")
+               ),
+               conditionalPanel("input.buildModels != 0",
+                                radioButtons("predictSelect", "Select prediction type:",
+                                             c("Custom input" = "custom",
+                                               "Pokemon of predicted type" = "myType",
+                                               "Pokemon NOT of predicted type" = "notMyType")),
+                                conditionalPanel("input.predictSelect == 'custom'",
+                                                 div("Customize height/weight and base stats to see what the various models will predict. 
+                                                     Maximum and minimum slider values reflect the overall maximum and minimum values for the 
+                                                     Pokemon used in building the models. Values are present at the overall median values."),
+                                                 br(),
+                                                  uiOutput("heightSlider"),
+                                                  uiOutput("weightSlider"),
+                                                  uiOutput("hpSlider"),
+                                                  uiOutput("attackSlider"),
+                                                  uiOutput("defenseSlider"),
+                                                  uiOutput("specialAttackSlider"),
+                                                  uiOutput("specialDefenseSlider"),
+                                                  uiOutput("speedSlider"),
+                                                  tableOutput("customPokeTable")),
+                                conditionalPanel("input.predictSelect == 'myType'",
+                                                 div("All Pokemon of the predicted type are below. Select one to see if the models will 
+                                                     correctly predict."),
+                                                 br(),
+                                                  uiOutput("myTypeList"),
+                                                 tableOutput("rightTypePokeTable")),
+                                conditionalPanel("input.predictSelect == 'notMyType'",
+                                                 div("All Pokemon NOT of the predicted type are below. Select one to see if the models will 
+                                                     correctly predict."),
+                                                 br(),
+                                                 uiOutput("notMyTypeList"),
+                                                 tableOutput("wrongTypePokeTable")),
+                                actionButton("predict", "Predict!")
+               )
+               ),
       
       "Data",
       tabPanel("Subset and Export",
-               h2("This panel will allow the user to subset and export the data as they see fit"))
+               h2("This panel will allow the user to subset and export the data as they see fit"),
+               checkboxGroupInput("exportVars", "Select variables to include:",
+                                  choices = names(myData), selected = names(myData)),
+               actionButton("download", "Download as .csv"))
       
     ),
     sidebarPanel(radioButtons(
@@ -282,6 +322,7 @@ fluidPage(
         "VII" = "809",
         "VIII" = "905",
         "IX" = "1010"),
-      selected = "1010"
+      selected = "1010",
+      inline = TRUE
     ))
 )

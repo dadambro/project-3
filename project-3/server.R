@@ -72,9 +72,9 @@ function(input, output, session) {
      }
    })
 ##########
-   
+
 #Build models
-   
+
 ({observeEvent(input$buildModels, {
   
   #Conditional logic to not allow model building if all models have 0 variables selected
@@ -106,14 +106,14 @@ function(input, output, session) {
                  else{as.numeric(input$randForestmtry)}
                  
                  #Generate overall dataset
-                 modData <- myData %>% filter(id.number <= as.numeric(input$gens))
-                 modData <- modData %>% 
+                 myNewData <- myData %>% filter(id.number <= as.numeric(input$gens))
+                 myNewData <- myNewData %>% 
                    mutate(myVar = if_else(type1 == input$myType | type2 == input$myType, 
                                           str_to_title(input$myType) , 
                                           paste0("Not_", str_to_title(input$myType)), 
                                           paste0("Not_", str_to_title(input$myType))))
-                 modData$myVar <- as.factor(modData$myVar)
-                 modData <- modData %>% select(height:myVar)
+                 myNewData$myVar <- as.factor(myNewData$myVar)
+                 modData <- myNewData %>% select(height:myVar)
                  
                  #Set seed
                  set.seed(as.numeric(input$seed))
@@ -138,7 +138,7 @@ function(input, output, session) {
                  incProgress(0.25, detail = "Training GLM")
                  
                  #Train generalized linear model
-                 genLinearFit <- train(myVar ~ ., data = glmmodTrain,
+                 genLinearFit <<- train(myVar ~ ., data = glmmodTrain,
                                        method = "glm",
                                        family = "binomial",
                                        preProcess = c("center", "scale"),
@@ -154,7 +154,7 @@ function(input, output, session) {
                  incProgress(0.25, detail = "Training Decision Tree")
                  
                  #Train decision tree model
-                 classTreeFit <- train(myVar ~ ., data = treemodTrain, 
+                 classTreeFit <<- train(myVar ~ ., data = treemodTrain, 
                                        method = "rpart",
                                        preProcess = c("center", "scale"),
                                        trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3),
@@ -169,7 +169,7 @@ function(input, output, session) {
                  incProgress(0.25, detail = "Training Random Forest")
                  
                  #Train random forest model
-                 randomForestFit <- train(myVar ~ ., data = rfmodTrain, 
+                 randomForestFit <<- train(myVar ~ ., data = rfmodTrain, 
                                           method = "rf",
                                           preProcess = c("center", "scale"),
                                           trControl = trainControl(method = "repeatedcv", number = 5, repeats = 3),
@@ -222,6 +222,47 @@ function(input, output, session) {
                  
                  output$testModelTitle <- renderUI({isolate(h5(strong(paste0("Model performance on test data for type '", 
                                                                              input$myType, "':"))))})
+                 #Render UI objects for Predict tab
+                 output$heightSlider <- renderUI(sliderInput("heightSlider", "Height:",
+                                                             min = min(myNewData$height),
+                                                             max = max(myNewData$height),
+                                                             value = mean(myNewData$height)))
+                 output$weightSlider <- renderUI(sliderInput("weightSlider", "Weight:",
+                                                             min = min(myNewData$weight),
+                                                             max = max(myNewData$weight),
+                                                             value = mean(myNewData$weight)))
+                 output$attackSlider <- renderUI(sliderInput("attackSlider", "Attack:",
+                                                             min = min(myNewData$attack),
+                                                             max = max(myNewData$attack),
+                                                             value = mean(myNewData$attack)))
+                 output$defenseSlider <- renderUI(sliderInput("defenseSlider", "Defense:",
+                                                             min = min(myNewData$defense),
+                                                             max = max(myNewData$defense),
+                                                             value = mean(myNewData$defense)))
+                 output$specialAttackSlider <- renderUI(sliderInput("specialAttackSlider", "Special Attack:",
+                                                             min = min(myNewData$special.attack),
+                                                             max = max(myNewData$special.attack),
+                                                             value = mean(myNewData$special.attack)))
+                 output$specialDefenseSlider <- renderUI(sliderInput("specialDefenseSlider", "Special Defense:",
+                                                             min = min(myNewData$special.defense),
+                                                             max = max(myNewData$special.defense),
+                                                             value = mean(myNewData$special.defense)))
+                 output$speedSlider <- renderUI(sliderInput("speedSlider", "Speed:",
+                                                             min = min(myNewData$speed),
+                                                             max = max(myNewData$speed),
+                                                             value = mean(myNewData$speed)))
+                 output$hpSlider <- renderUI(sliderInput("hpSlider", "HP:",
+                                                             min = min(myNewData$hp),
+                                                             max = max(myNewData$hp),
+                                                             value = mean(myNewData$hp)))
+                 
+                 typePoke <- myNewData %>% filter(myVar == str_to_title(input$myType))
+                 notTypePoke <- myNewData %>% filter(myVar != str_to_title(input$myType))
+                 output$myTypeList <- renderUI(selectInput("myTypeList", "Pokemon of Predicted Type:",
+                                                           typePoke$name))
+                 output$notMyTypeList <- renderUI(selectInput("notMyTypeList", "Pokemon NOT of Predicted Type:",
+                                                           notTypePoke$name))
+                 
                })
 }
   }
@@ -230,4 +271,88 @@ function(input, output, session) {
 )
 ##########
 
+#Predict stuff
+({observeEvent(input$predict, {
+
+  
+
+if(input$predictSelect == "custom"){
+#Custom slider input
+customPoke <- data.frame(height = as.numeric(input$heightSlider),
+                         weight = as.numeric(input$weightSlider),
+                         hp = as.numeric(input$hpSlider),
+                         attack = as.numeric(input$attackSlider),
+                         defense = as.numeric(input$defenseSlider),
+                         special.attack = as.numeric(input$specialAttackSlider),
+                         special.defense = as.numeric(input$specialDefenseSlider),
+                         speed = as.numeric(input$speedSlider))
+
+glmcustomPoke <- customPoke %>% select(all_of(input$lmVars))
+glmcustomPokePredict <- predict(genLinearFit, newdata = glmcustomPoke)
+
+classTreeCustomPoke <- customPoke %>% select(all_of(input$treeVars))
+classTreeCustomPokePredict <- predict(classTreeFit, newdata = classTreeCustomPoke)
+
+randomForestCustomPoke <- customPoke %>% select(all_of(input$randForestVars))
+randomForestCustomPokePredict <- predict(randomForestFit, newdata = randomForestCustomPoke)
+
+customPokeTable <- data.frame(Model = c("Generalized Linear", "Classification Tree", "Random Forest"),
+                              Prediction = c(as.character(glmcustomPokePredict), 
+                                             as.character(classTreeCustomPokePredict), 
+                                             as.character(randomForestCustomPokePredict)
+                                             )
+                              )
+output$customPokeTable <- renderTable({customPokeTable})
+}
+
+else if(input$predictSelect == "myType"){
+#"Right" type Pokemon prediction
+rightTypePoke <- myData %>% filter(name == input$myTypeList)
+
+glmRightTypePoke <- rightTypePoke %>% select(all_of(input$lmVars))
+glmRightTypePokePredict <- predict(genLinearFit, newdata = glmRightTypePoke)
+
+classTreeRightTypePoke <- rightTypePoke %>% select(all_of(input$treeVars))
+classTreeRightTypePokePredict <- predict(classTreeFit, newdata = classTreeRightTypePoke)
+
+randomForestRightTypePoke <- rightTypePoke %>% select(all_of(input$randForestVars))
+randomForestRightTypePokePredict <- predict(randomForestFit, newdata = randomForestRightTypePoke)
+
+rightTypePokeTable <- data.frame(Model = c("Generalized Linear", "Classification Tree", "Random Forest"),
+                              Prediction = c(as.character(glmRightTypePokePredict), 
+                                             as.character(classTreeRightTypePokePredict), 
+                                             as.character(randomForestRightTypePokePredict)
+                                             )
+)
+output$rightTypePokeTable <- renderTable({rightTypePokeTable})
+}
+else{
+#"Wrong" type Pokemon prediction
+wrongTypePoke <- myData %>% filter(name == input$notMyTypeList)
+
+glmWrongTypePoke <- wrongTypePoke %>% select(all_of(input$lmVars))
+glmWrongTypePokePredict <- predict(genLinearFit, newdata = glmWrongTypePoke)
+
+classTreeWrongTypePoke <- wrongTypePoke %>% select(all_of(input$treeVars))
+classTreeWrongTypePokePredict <- predict(classTreeFit, newdata = classTreeWrongTypePoke)
+
+randomForestWrongTypePoke <- wrongTypePoke %>% select(all_of(input$randForestVars))
+randomForestWrongTypePokePredict <- predict(randomForestFit, newdata = randomForestWrongTypePoke)
+
+wrongTypePokeTable <- data.frame(Model = c("Generalized Linear", "Classification Tree", "Random Forest"),
+                                 Prediction = c(as.character(glmWrongTypePokePredict), 
+                                                as.character(classTreeWrongTypePokePredict), 
+                                                as.character(randomForestWrongTypePokePredict)
+                                 )
+)
+output$wrongTypePokeTable <- renderTable({wrongTypePokeTable})
+}
+})
+               })
+   
+#Data export and subset
+observeEvent(input$download,{
+  write.csv(myData[, input$exportVars], file = "pokemon-subset.csv", row.names = FALSE)
+  file.rename("pokemon.csv", paste0("pokemon-subset-", Sys.Date(), ".csv"))
+})
 }
