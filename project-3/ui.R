@@ -305,6 +305,7 @@ fluidPage(
       "Data",
       tabPanel("Subset and Export",
                h2("This panel will allow the user to subset and export the data as they see fit"),
+               dataTableOutput("allData"),
                checkboxGroupInput("exportVars", "Select variables to include:",
                                   choices = names(myData), selected = names(myData)),
                actionButton("download", "Download as .csv"))

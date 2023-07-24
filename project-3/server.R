@@ -351,6 +351,7 @@ output$wrongTypePokeTable <- renderTable({wrongTypePokeTable})
                })
    
 #Data export and subset
+output$allData <- renderDataTable({myData})
 observeEvent(input$download,{
   write.csv(myData[, input$exportVars], file = "pokemon-subset.csv", row.names = FALSE)
   file.rename("pokemon.csv", paste0("pokemon-subset-", Sys.Date(), ".csv"))
