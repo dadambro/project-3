@@ -31,8 +31,7 @@ fluidPage(
                h4("Subset and Export"),
                "Create your very own subset of Pokemon data, export it, and use 
                it as you see fit!",
-               br(),
-               br(),
+               p(),
                h4("General notes"),
                "The radio buttons at the bottom allows you to filter the 
                data used by generation. As the Pokemon franchise has expanded, 
@@ -43,16 +42,19 @@ fluidPage(
                allow one to explore this idea by seeing if limiting the dataset 
                causes trends to become more apparent, models to perform 
                differently, etc.",
-               br(),
-               br(),
+               p(),
                "Below is a random image of a Pokemon retrieved from the web. 
                Note that if the image appears to be broken, check your Internet 
                connection/try running this app externally in a browser instead of 
                within R. A new image can be retrieved by clicking the button below. 
                The radio buttons controlling 'Generation' also work on the picture as well;
                 selecting 'Generation I' will only return images from Pokemon etc.",
-               br(),
-               br(),
+               p(),
+               "In the Pokemon games, there is always a small chance of a encountering a 'shiny' Pokemon 
+               (i.e, a Pokemon with a unique color palette relative to the original design). To reflect that 
+               (and since we ", em("are"), " working with R 'Shiny'), there is a 1 in 25 chance of a shiny Pokemon image
+               appearing below :)",
+               p(),
                actionButton("newPic", "Generate new picture!"),
                p(),
                uiOutput("picName"),
@@ -344,11 +346,44 @@ fluidPage(
       "Data",
       tabPanel("Subset and Export",
                h3("Subset and Export"),
-               h2("This panel will allow the user to subset and export the data as they see fit"),
+               h4("Create a customized subset of data, and export as a .csv with the button below:"),
                dataTableOutput("allData"),
+               
                checkboxGroupInput("exportVars", "Select variables to include:",
                                   choices = names(myData), selected = names(myData)),
-               actionButton("download", "Download as .csv"))
+               checkboxInput("typeFilter", "Subset using binary type variable?"),
+               conditionalPanel(condition = "input.typeFilter == 1",
+                                selectInput("myTypeFilter", "Select type",
+                                            c("Bug" = "bug",
+                                              "Dark" = "dark",
+                                              "Dragon" = "dragon",
+                                              "Electric" = "electric",
+                                              "Fairy" = "fairy",
+                                              "Fighting" = "fighting",
+                                              "Fire" = "fire",
+                                              "Flying" = "flying",
+                                              "Ghost" = "ghost",
+                                              "Grass" = "grass",
+                                              "Ground" = "ground",
+                                              "Ice" = "ice",
+                                              "Normal" = "normal",
+                                              "Poison" = "poison",
+                                              "Psychic" = "psychic",
+                                              "Rock" = "rock",
+                                              "Steel" = "steel",
+                                              "Water" = "water")),
+               radioButtons("typeFilterOption", "Include or exclude selected type?",
+                            c("Include (only Pokemon of selected type will be returned)" = "include",
+                              "Exclude (only Pokemon NOT of selected type will be returned)" = "exclude"))),
+               actionButton("preview", "Implement changes and preview report"),
+               p(),
+               conditionalPanel(condition = "input.preview",
+                actionButton("download", "Download as .csv"),
+                p(),
+               strong("NOTE!"), "If changes are made to any filters after generating the preview, 
+               click the", em("'Implement changes and preview report'"), " button again to confirm the preivew matches 
+               what you wish to export. Failure to do so may result in an exported .csv that does not match 
+               what you intended to export."))
       
     ),
     sidebarPanel(radioButtons(

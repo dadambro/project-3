@@ -11,18 +11,26 @@ function(input, output, session) {
 
 #Create random image for landing page
 picNum <- sample(1:1010, 1)
-src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")
+shinyNum <- sample(1:25, 1)
+if(shinyNum == 13){
+src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/", picNum, ".png")}
+else{src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")}
 output$randomPic <- renderUI({tags$img(src = src)})
 picNameData <- myData %>% filter(id.number == picNum)
-picName <- paste0("It's ", picNameData$name, "!")
+if(shinyNum == 13){picName <- paste0("It's SHINY ", picNameData$name, "!")}
+else{picName <- paste0("It's ", picNameData$name, "!")}
 output$picName <- renderUI({h4(tags$strong(picName))})
 
 observeEvent(input$newPic, {
   picNum <- sample(1:as.numeric(input$gens), 1)
-  src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")
+  shinyNum <- sample(1:25, 1)
+  if(shinyNum == 13){
+    src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/", picNum, ".png")}
+  else{src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")}
   output$randomPic <- renderUI({tags$img(src = src)})
   picNameData <- myData %>% filter(id.number == picNum)
-  picName <- paste0("It's ", picNameData$name, "!")
+  if(shinyNum == 13){picName <- paste0("It's SHINY ", picNameData$name, "!")}
+  else{picName <- paste0("It's ", picNameData$name, "!")}
   output$picName <- renderUI({h4(tags$strong(picName))})
 })
 ##########
@@ -305,7 +313,6 @@ observeEvent(input$newPic, {
 
 #Predict stuff
 ({observeEvent(input$predict, {
-
   
 ##Custom variable values prediction
 if(input$predictSelect == "custom"){
@@ -385,9 +392,29 @@ output$wrongTypePokeTable <- renderTable({wrongTypePokeTable})
 ##########
    
 #Data export and subset
-output$allData <- renderDataTable({myData})
+observeEvent(input$preview, {
+  #Include Pokemon from generation radio button filter
+  exportData <- myData %>% filter(id.number <= as.numeric(input$gens))
+  #Deal with binary type-specific filtering
+  if(input$typeFilter){exportData <- exportData %>% 
+    mutate(myVar = if_else(type1 == input$myTypeFilter | type2 == input$myTypeFilter, 
+                           str_to_title(input$myTypeFilter) , 
+                           paste0("Not_", str_to_title(input$myTypeFilter)), 
+                           paste0("Not_", str_to_title(input$myTypeFilter))))
+  if(input$typeFilterOption == 'include'){
+    exportData <- exportData %>% filter(myVar == str_to_title(input$myTypeFilter))
+  }
+  else{exportData <- exportData %>% filter(myVar != str_to_title(input$myTypeFilter))
+  }
+  exportData <<- exportData %>% select(all_of(input$exportVars))
+  }
+  else{exportData <<- exportData %>% select(all_of(input$exportVars))}
+})
+  #Make data table preview
+observeEvent(input$preview, {output$allData <- renderDataTable({exportData})})
+  #Export data to .csv
 observeEvent(input$download,{
-  write.csv(myData[, input$exportVars], file = "pokemon-subset.csv", row.names = FALSE)
-  file.rename("pokemon.csv", paste0("pokemon-subset-", Sys.Date(), ".csv"))
+  fileName <- paste0("pokemon-subset-", Sys.Date(), ".csv")
+  write.csv(exportData, file = fileName, row.names = FALSE)
 })
 }
