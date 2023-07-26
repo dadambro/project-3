@@ -1,7 +1,7 @@
 library(shiny)
 
 fluidPage(
-
+  withMathJax(),
     # Application title
     titlePanel("Project 3"),
     
@@ -12,9 +12,14 @@ fluidPage(
                "The purpose of this app is to explore whether or not one can 
                predict a Pokemon's typing based on its base stats, height, and weight. 
                This is accomplished by selecting a type, determining if each Pokemon's
-               primary or secondary type IS said type, and binarily classifying 
+               primary or secondary type ", em("is"), " said type, and binarily classifying 
                it as 'Type' or 'Not_Type'. The models then attempt to predict this binary
                 membership for each Pokemon",
+               p(),
+               "Although the data used by this app is imported from a .csv file to expedite its
+               startup time, the data in said .csv was originally queried from", tags$a(href= "http://pokeapi.co", "PokeApi"),
+               ". Custom R functions to interact with this API (which were used to create the .csv) can be found on my", 
+               tags$a(href= "http://dadambro.github.io/project-1/", "Project-1"), " page.",
                
                h4("Data Exploration"),
                "These tabs allows for graphical and numerical exploration of 
@@ -53,7 +58,7 @@ fluidPage(
                "In the Pokemon games, there is always a small chance of a encountering a 'shiny' Pokemon 
                (i.e, a Pokemon with a unique color palette relative to the original design). To reflect that 
                (and since we ", em("are"), " working with R 'Shiny'), there is a 1 in 25 chance of a shiny Pokemon image
-               appearing below :)",
+               appearing below:",
                p(),
                actionButton("newPic", "Generate new picture!"),
                p(),
@@ -168,7 +173,33 @@ fluidPage(
       
       "Modeling",
       tabPanel("Modeling Info",
-               h2("This panel will provide general information about modeling")),
+               h3("Modeling Information"),
+               p(),
+               "This app allows for the creation of models using 3 different approaches:",
+               
+               h4("Generalized Linear Model"),
+               p(),
+               "The generalized linear model in this app uses logistic regression to model the 
+               probability of a Pokemon belonging to a specified type. A generic example of such 
+               a model is below:",
+               p(),
+               "$$ln(p/1-p) = B_0 + B_1 x_1$$",
+               p(),
+               "Where $$x_1$$ is some predictor variable (e.g., 'base attack'). An advantage of generalized linear 
+               models is that they are fairly easy to interpret for someone with some basic background knowledge 
+               of general statistics; one can view coefficient estimates and significance to deduce both if and how the various 
+               predictors are impacting the overall estimate. It should be noted that for the particular model in this app, the estimate is the 'log odds,' 
+               which may not be as straightforward for one to deduce. Disadvantages of the generalized linear models include reliance on 
+               certain assumptions between the response and predictors (which many not always hold) and an inability to account 
+               for interactions between predictors unless explicitly coded to do so. As of now, this app does not have the ability to account 
+               for interactions among predictors in the generalized linear model.
+               p(),
+               In addition to providing some fit statistics related to the training and test datasets, the app provides a confusion matrix for 
+               the generalized linear model, along with a summary output of the various coefficients.",
+               p(),
+               h4("Decision Tree Model"),
+               p(),
+               ""),
       
       tabPanel("Model Fitting",
                h3("Model Fitting"),
@@ -347,8 +378,6 @@ fluidPage(
       tabPanel("Subset and Export",
                h3("Subset and Export"),
                h4("Create a customized subset of data, and export as a .csv with the button below:"),
-               dataTableOutput("allData"),
-               
                checkboxGroupInput("exportVars", "Select variables to include:",
                                   choices = names(myData), selected = names(myData)),
                checkboxInput("typeFilter", "Subset using binary type variable?"),
@@ -378,6 +407,7 @@ fluidPage(
                actionButton("preview", "Implement changes and preview report"),
                p(),
                conditionalPanel(condition = "input.preview",
+                dataTableOutput("allData"),
                 actionButton("download", "Download as .csv"),
                 p(),
                strong("NOTE!"), "If changes are made to any filters after generating the preview, 
