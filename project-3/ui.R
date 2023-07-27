@@ -46,7 +46,15 @@ fluidPage(
                combinations are introduced into the game. The radio buttons 
                allow one to explore this idea by seeing if limiting the dataset 
                causes trends to become more apparent, models to perform 
-               differently, etc.",
+               differently, etc. HOWEVER, there is a tradeoff here; these data are 
+               inherently imbalanced, as there are always more Pokemon that are 'not' of 
+               a specific type versus the number of Pokemon that are of said type, 
+               regardless of generation. This imbalance tends to become more 
+               pronounced in earlier generations of Pokemon games. Sometimes, 
+               filtering data by an early generation will not allow models 
+               to be properly generated for certain types. In general, it is best
+               to include all 1010 Pokemon (i.e., throuh Generation IX) for best 
+               modeling performance.",
                p(),
                "Below is a random image of a Pokemon retrieved from the web. 
                Note that if the image appears to be broken, check your Internet 
@@ -185,21 +193,40 @@ fluidPage(
                p(),
                "$$ln(p/1-p) = B_0 + B_1 x_1$$",
                p(),
-               "Where $$x_1$$ is some predictor variable (e.g., 'base attack'). An advantage of generalized linear 
+               "Where 'x subscript 1' is some predictor variable (e.g., 'base attack'). An advantage of generalized linear 
                models is that they are fairly easy to interpret for someone with some basic background knowledge 
                of general statistics; one can view coefficient estimates and significance to deduce both if and how the various 
                predictors are impacting the overall estimate. It should be noted that for the particular model in this app, the estimate is the 'log odds,' 
                which may not be as straightforward for one to deduce. Disadvantages of the generalized linear models include reliance on 
                certain assumptions between the response and predictors (which many not always hold) and an inability to account 
                for interactions between predictors unless explicitly coded to do so. As of now, this app does not have the ability to account 
-               for interactions among predictors in the generalized linear model.
+               for interactions among predictors in the generalized linear model.",
                p(),
-               In addition to providing some fit statistics related to the training and test datasets, the app provides a confusion matrix for 
+               "In addition to providing some fit statistics related to the training and test datasets, the app provides a confusion matrix for 
                the generalized linear model, along with a summary output of the various coefficients.",
                p(),
                h4("Decision Tree Model"),
                p(),
-               ""),
+               "The decision tree model in this app works by taking the various continuous predictors and establishing a 'threshold' for 
+               each; observations then progress through the tree based on their value relative to the various thresholds they encounter until 
+               a decision is reached. A major advantage of a decision tree is that it is easy to understand; a human can readily view a decision 
+               tree diagram and follow along to generate a prediction. Further, decisions can naturally handle interactions unlike the generalized 
+               linear model. There are some disadvantages, however. Generally, decision trees can be quite sensitive to small data changes. They are 
+               also prone to overfitting.",
+               p(),
+               "In addition to providing some fit statistics related to the training and test datasets, the app provides a confusion matrix for the 
+               decision tree model, along with a plot of the tree itself.",
+               h4("Random Forest Model"),
+               "The random forest model in this app functions similarly to the decision tree, but takes an ensemble approach wherein multiple trees 
+               are fit to bootstrap samples of the data. Only a random subset of predictors are used in each tree, the value of which is dictated by the 
+               'mtry' input in this app. There are a couple advantages of the random tree approach relative to the single decision tree. First, the ensemble 
+               approach, which creates multiple trees, can help guard against biases from a single tree. Second, the random subset of variables used in each 
+               tree helps to reduce correlation among trees, which in turn allows for a greater reduction in variation once the outcome of all trees are queried. 
+               The major disadvantage of the random tree approach is its interpretability; unlike a single decision tree, it is very difficult for a human to 
+               'follow along' with the random tree process",
+               p(),
+               "In addition to provding some fit statistics related to the training and test datasets, the app provides a confusion matrix for the random tree model,
+                in addtion to a variable importance plot"),
       
       tabPanel("Model Fitting",
                h3("Model Fitting"),
@@ -286,7 +313,7 @@ fluidPage(
                                                      "Speed" = "speed"
                                                    )),
                                 numericInput("treecp", "Select complexity parameter value:",
-                                             0.01,
+                                             0.001,
                                              min = 0.001,
                                              max = 0.1,
                                              step = 0.001),
@@ -328,16 +355,16 @@ fluidPage(
                                 verbatimTextOutput("modelSummaryGLM")),
                conditionalPanel("input.viewMoreOutput == 'ct'",
                                 verbatimTextOutput("confusionMatrixClassTree"),
-                                verbatimTextOutput("variableImportanceClassTree")),
+                                plotOutput("plotClassTree")),
                conditionalPanel("input.viewMoreOutput == 'rf'",
                                 verbatimTextOutput("confusionMatrixRandomForest"),
-                                verbatimTextOutput("variableImportanceRandomForest"))
+                                plotOutput("plotRandomForest"))
                ),
       
       tabPanel("Prediction",
                h3("Prediction"),
                conditionalPanel("input.buildModels == 0",
-               h2("Build models first!")
+               h3("Build models first!")
                ),
                conditionalPanel("input.buildModels != 0",
                                 radioButtons("predictSelect", "Select prediction type:",
@@ -363,12 +390,14 @@ fluidPage(
                                                      correctly predict."),
                                                  br(),
                                                   uiOutput("myTypeList"),
+                                                 tableOutput("rightTypePokeInfo"),
                                                  tableOutput("rightTypePokeTable")),
                                 conditionalPanel("input.predictSelect == 'notMyType'",
                                                  div("All Pokemon NOT of the predicted type are below. Select one to see if the models will 
                                                      correctly predict."),
                                                  br(),
                                                  uiOutput("notMyTypeList"),
+                                                 tableOutput("wrongTypePokeInfo"),
                                                  tableOutput("wrongTypePokeTable")),
                                 actionButton("predict", "Predict!")
                )

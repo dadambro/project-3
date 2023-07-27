@@ -237,16 +237,19 @@ observeEvent(input$newPic, {
                  output$trainModelOutput <- renderTable({rbind(genLinearTable, classTreeTable, randomForestTable)})
                  
                  output$trainModelFootnote <- renderUI({paste0("The classification tree cp was: ", classTreeFit$bestTune[,1], 
-                                                               "; the random forest mtry was: ", randomForestFit$bestTune[,1])})
+                                                               "; the random forest mtry was: ", randomForestFit$bestTune[,1], 
+                                                               ". Due to the imbalanced nature of these data, accuracy is likely misleading; 
+                                                               consult the other fit statistics below to get a better idea of model performance")})
                  
                  output$confusionMatrixGLM <- renderPrint({genLinearCM})
                  output$modelSummaryGLM <- renderPrint({summary(genLinearFit$finalModel)})
                  
                  output$confusionMatrixClassTree <- renderPrint({classTreeCM})
-                 output$variableImportanceClassTree <- renderPrint({classTreeFit$finalModel$variable.importance})
+                 output$plotClassTree <- renderPlot({plot(classTreeFit$finalModel)
+                                                     text(classTreeFit$finalModel)})
                  
                  output$confusionMatrixRandomForest <- renderPrint({randomForestCM})
-                 output$variableImportanceRandomForest <- renderPrint({randomForestFit$finalModel$importance})
+                 output$plotRandomForest <- renderPlot({varImpPlot(randomForestFit$finalModel, main = NULL)})
                  
                  genLinearTestVars <- genLinearCM$byClass[c(1,2,5:7)]
                  classTreeTestVars <- classTreeCM$byClass[c(1,2,5:7)]
@@ -363,6 +366,7 @@ rightTypePokeTable <- data.frame(Model = c("Generalized Linear", "Classification
                                              as.character(randomForestRightTypePokePredict)
                                              )
 )
+output$rightTypePokeInfo <- renderTable({select(rightTypePoke, name, height:speed)})
 output$rightTypePokeTable <- renderTable({rightTypePokeTable})
 }
 
@@ -385,6 +389,7 @@ wrongTypePokeTable <- data.frame(Model = c("Generalized Linear", "Classification
                                                 as.character(randomForestWrongTypePokePredict)
                                  )
 )
+output$wrongTypePokeInfo <- renderTable({select(wrongTypePoke, name, height:speed)})
 output$wrongTypePokeTable <- renderTable({wrongTypePokeTable})
 }
 })
