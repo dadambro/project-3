@@ -7,7 +7,7 @@ library(curl)
 library(rio)
 
 #Read in dataset
-myData <- import("http://raw.githubusercontent.com/dadambro/project-3/main/pokemon.csv")
+myData <- read.csv("https://raw.githubusercontent.com/dadambro/project-3/main/pokemon.csv")
 
 function(input, output, session) {
 
