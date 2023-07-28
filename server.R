@@ -1,13 +1,4 @@
-library(shiny)
-library(tidyverse)
-library(DT)
-library(caret)
-library(randomForest)
-library(curl)
-library(rio)
-
-#Read in dataset
-myData <- read_csv("pokemon.csv")
+source("helper.R")
 
 function(input, output, session) {
 

@@ -1,6 +1,4 @@
-library(shiny)
-
-myData <- read_csv("pokemon.csv")
+source("helper.R")
 
 fluidPage(
   withMathJax(),
