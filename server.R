@@ -5,7 +5,7 @@ library(caret)
 library(randomForest)
 
 #Read in dataset
-myData <- read_csv("pokemon.csv")
+myData <- read_csv("https://raw.githubusercontent.com/dadambro/project-3/main/pokemon.csv")
 
 function(input, output, session) {
 
