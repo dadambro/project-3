@@ -6,7 +6,7 @@ library(randomForest)
 library(curl)
 
 #Read in dataset
-myData <- read_csv(curl("https://raw.githubusercontent.com/dadambro/project-3/main/pokemon.csv"))
+myData <- read_csv(curl("http://raw.githubusercontent.com/dadambro/project-3/main/pokemon.csv"))
 
 function(input, output, session) {
 
