@@ -1,0 +1,80 @@
+Project 3
+================
+Damon D’Ambrosio
+
+- [App Description and Purpose](#app-description-and-purpose)
+- [List of required packages](#list-of-required-packages)
+- [Running the app](#running-the-app)
+
+## App Description and Purpose
+
+The purpose of this app is to see if various data associated with
+Pokemon (i.e., their base stats, height, and weight), can be used to
+predict their type. Type membership is determined in a binary fashion.
+Since each Pokemon can have up to two types, a primary and secondary,
+the app will consider both types when assigning type membership. For
+example, a Pokemon with a primary type of “Fire” would be considered a
+member of the “Fire” type, as would a different Pokemon with a primary
+type of “Dark” and a secondary type of “Fire.” Data originate from
+[PokeApi](https://pokeapi.co/). For the purpose of expediting load time
+for this app, the dataset resides locally in this GitHub repo.
+
+Data can be subset as the user sees fit to limit the scope of included
+Pokemon by “Generation” (i.e., the series of games in which they
+appeared), and different predictors can be included/excluded from each
+model. When applicable, certain tuning parameters can be specified for
+the models. The app will fit a generalized linear model, a simple
+classification tree, and a random forest ensemble model.
+
+These data are inherently imbalanced, as there are always more Pokemon
+that do NOT belong to a specific type versus those that do. As such,
+models often superficially appear to have high accuracy, as simply
+“guessing” most Pokemon do NOT belong to a certain type will
+artificially inflate this value. To guard against this, the app provides
+other fit metrics, such as “sensitivity” and “specificity,” to give a
+better idea of model performance, and explicitly identifies a Pokemon
+belonging to a given type as the “positive.” Because of this imbalance,
+sometimes, unique combinations of type, Generation filter, tuning
+parameters, training/test split, and selected predictors will fail to
+produce some models (epsecially the GLM/simple classification tree).
+Some safeguards exist within the app to preclude the user from trying to
+fit a model on a filtered dataset that has no “positive” occurences of
+type membership.
+
+In addition to making models, the app allows for numeric and graphical
+exploration of these data, allows the user to provide custom inputs
+(fully user-defined, as well as lists of Pokemon that are and are not
+members of a selected type) to see model predictions, and allows the
+user to filter and export the data itself as a .csv file.
+
+## List of required packages
+
+The following packages are needed to run this app:
+
+- `shiny`: Create the Shiny app itself
+- `tidyverse`: Data manipulation/figure-making
+- `caret`: Create/train the various models
+- `randomForest`: Create the random forest model
+- `DT`: Create the `dataTableOutput`-type objects within the app
+
+The following code will install these packages:
+
+``` r
+install.packages(
+  c("shiny",
+    "tidyverse",
+    "caret",
+    "randomForest",
+    "DT"
+  )
+)
+```
+
+## Running the app
+
+Assuming all dependencies are installed, the folllowing code will run
+the app:
+
+``` r
+shiny::runGitHub('project-3', 'dadambro')
+```
