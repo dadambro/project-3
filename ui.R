@@ -437,7 +437,7 @@ fluidPage(
                p(),
                conditionalPanel(condition = "input.preview",
                 dataTableOutput("allData"),
-                actionButton("download", "Download as .csv"),
+                downloadButton("download", "Download as .csv"),
                 p(),
                strong("NOTE!"), "If changes are made to any filters after generating the preview, 
                click the", em("'Implement changes and preview report'"), " button again to confirm the preivew matches 

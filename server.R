@@ -410,9 +410,20 @@ observeEvent(input$preview, {
 })
   #Make data table preview
 observeEvent(input$preview, {output$allData <- renderDataTable({exportData})})
-  #Export data to .csv
-observeEvent(input$download,{
-  fileName <- paste0("pokemon-subset-", Sys.Date(), ".csv")
-  write.csv(exportData, file = fileName, row.names = FALSE)
-})
+ 
+ #Export data to .csv
+output$download <- downloadHandler(
+  filename = function() {
+    paste0("pokemon-subset.csv")
+  },
+  content = function(file){
+    write.csv(exportData, file)
+  }
+)
+
+
+#observeEvent(input$download,{
+#  fileName <- paste0("pokemon-subset-", Sys.Date(), ".csv")
+#  write.csv(exportData, file = fileName, row.names = FALSE)
+#})
 }
