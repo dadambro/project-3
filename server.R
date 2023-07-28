@@ -417,7 +417,7 @@ output$download <- downloadHandler(
     paste0("pokemon-subset.csv")
   },
   content = function(file){
-    write.csv(exportData, file)
+    write.csv(exportData, file, row.names = FALSE)
   }
 )
 
