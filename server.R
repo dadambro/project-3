@@ -4,9 +4,10 @@ library(DT)
 library(caret)
 library(randomForest)
 library(curl)
+library(rio)
 
 #Read in dataset
-myData <- read_csv(curl("http://raw.githubusercontent.com/dadambro/project-3/main/pokemon.csv"))
+myData <- import("http://raw.githubusercontent.com/dadambro/project-3/main/pokemon.csv")
 
 function(input, output, session) {
 
