@@ -20,19 +20,19 @@ fluidPage(
                startup time, the data in said .csv was originally queried from", tags$a(href= "http://pokeapi.co", "PokeApi"),
                ". Custom R functions to interact with this API (which were used to create the .csv) can be found on my", 
                tags$a(href= "http://dadambro.github.io/project-1/", "Project-1"), " page.",
-               
+               p(),
                h4("Data Exploration"),
                "These tabs allows for graphical and numerical exploration of 
                Pokemon types and base stats. Play around as you see fit, 
                generate figures/summaries, and see if certain stats/heights/weights seem to 
                associate with certain types.",
-               
+               p(),
                h4("Modeling"),
                "These tabs provide some basic information about the modeling 
                approaches, and allows you to design, fit, and train a model to 
                predict Pokemon type. Finally, you can put your models to the test
                to see if it can correctly predict a Pokemon's typing.",
-               
+               p(),
                h4("Subset and Export"),
                "Create your very own subset of Pokemon data, export it, and use 
                it as you see fit!",
@@ -124,7 +124,8 @@ fluidPage(
                                                "Psychic" = "psychic",
                                                "Rock" = "rock",
                                                "Steel" = "steel",
-                                               "Water" = "water")))
+                                               "Water" = "water")
+                                            ))
                ),
                conditionalPanel(condition = "input.displayGraph == 'freqpoly'",
                                 plotOutput("freqPoly"),
@@ -136,8 +137,8 @@ fluidPage(
                                               "Defense" = "defense",
                                               "Special Attack" = "special.attack",
                                               "Special Defense" = "special.defense",
-                                              "Speed" = "speed"
-                                            )),
+                                              "Speed" = "speed")
+                                            ),
                                 checkboxInput("colorcode3", "Color polygons by a specific type?"),
                                 conditionalPanel(condition = "input.colorcode3 == 1",
                                                  selectInput("colorcode4", "Select type",
@@ -158,7 +159,8 @@ fluidPage(
                                                                "Psychic" = "psychic",
                                                                "Rock" = "rock",
                                                                "Steel" = "steel",
-                                                               "Water" = "water")))
+                                                               "Water" = "water")
+                                                             ))
                )),
       
       tabPanel("Numerical Summaries",
@@ -171,11 +173,12 @@ fluidPage(
                              "Defense" = "defense",
                              "Special Attack" = "special.attack",
                              "Special Defense" = "special.defense",
-                             "Speed" = "speed"
-                           )),
+                             "Speed" = "speed")
+                           ),
                radioButtons("tableType", "Select type to summarize by:",
                             c("Primary type" = "type1",
-                              "Secondary type" = "type2")),
+                              "Secondary type" = "type2")
+                            ),
                dataTableOutput("summaryTable")
                ),
       
@@ -184,7 +187,7 @@ fluidPage(
                h3("Modeling Information"),
                p(),
                "This app allows for the creation of models using 3 different approaches:",
-               
+               p(),
                h4("Generalized Linear Model"),
                p(),
                "The generalized linear model in this app uses logistic regression to model the 
@@ -205,24 +208,24 @@ fluidPage(
                "In addition to providing some fit statistics related to the training and test datasets, the app provides a confusion matrix for 
                the generalized linear model, along with a summary output of the various coefficients.",
                p(),
-               h4("Decision Tree Model"),
+               h4("Classification Tree Model"),
                p(),
-               "The decision tree model in this app works by taking the various continuous predictors and establishing a 'threshold' for 
+               "The classification tree model in this app works by taking the various continuous predictors and establishing a 'threshold' for 
                each; observations then progress through the tree based on their value relative to the various thresholds they encounter until 
-               a decision is reached. A major advantage of a decision tree is that it is easy to understand; a human can readily view a decision 
-               tree diagram and follow along to generate a prediction. Further, decisions can naturally handle interactions unlike the generalized 
-               linear model. There are some disadvantages, however. Generally, decision trees can be quite sensitive to small data changes. They are 
+               a decision is reached. A major advantage of a classification tree is that it is easy to understand; a human can readily view a classification 
+               tree diagram and follow along to generate a prediction. Further, classification trees can naturally handle interactions unlike the generalized 
+               linear model. There are some disadvantages, however. Generally, classification trees can be quite sensitive to small data changes. They are 
                also prone to overfitting.",
                p(),
                "In addition to providing some fit statistics related to the training and test datasets, the app provides a confusion matrix for the 
-               decision tree model, along with a plot of the tree itself.",
+               classification tree model, along with a plot of the tree itself.",
                h4("Random Forest Model"),
-               "The random forest model in this app functions similarly to the decision tree, but takes an ensemble approach wherein multiple trees 
+               "The random forest model in this app functions similarly to the classification tree, but takes an ensemble approach wherein multiple trees 
                are fit to bootstrap samples of the data. Only a random subset of predictors are used in each tree, the value of which is dictated by the 
-               'mtry' input in this app. There are a couple advantages of the random tree approach relative to the single decision tree. First, the ensemble 
+               'mtry' input in this app. There are a couple advantages of the random tree approach relative to the single classification tree. First, the ensemble 
                approach, which creates multiple trees, can help guard against biases from a single tree. Second, the random subset of variables used in each 
                tree helps to reduce correlation among trees, which in turn allows for a greater reduction in variation once the outcome of all trees are queried. 
-               The major disadvantage of the random tree approach is its interpretability; unlike a single decision tree, it is very difficult for a human to 
+               The major disadvantage of the random tree approach is its interpretability; unlike a single classification tree, it is very difficult for a human to 
                'follow along' with the random tree process",
                p(),
                "In addition to provding some fit statistics related to the training and test datasets, the app provides a confusion matrix for the random tree model,
@@ -258,7 +261,7 @@ fluidPage(
                                 "Note: Dark-type Pokemon do not exist in Generation I.
                                 If filtering by generation with the radio buttons below,
                                 make sure you are including Pokemon through at least Generation II.",
-                                br()
+                                p()
                ),
                conditionalPanel(condition = "input.myType == 'fairy'",
                                 "Note: Fairy-type Pokemon were introduced in Generation VI,
@@ -267,7 +270,7 @@ fluidPage(
                                 If filtering by generation with the radio buttons below,
                                 better results may be had by including Pokemon through 
                                 at least Generation VI.",
-                                br()
+                                p()
                ),
                conditionalPanel(condition = "input.myType == 'steel'",
                                 "Note: Steel-type Pokemon were introduced in Generation II,
@@ -276,7 +279,7 @@ fluidPage(
                                 If filtering by generation with the radio buttons below,
                                 better results may be had by including Pokemon through 
                                 at least Generation II.",
-                                br()
+                                p()
                ),
                
                sliderInput("trainSplit", "Percent of data to train on:",
@@ -286,7 +289,7 @@ fluidPage(
                
                selectInput("myModel", "Choose the model you wish to edit:",
                            c("Linear" = "lm",
-                             "Decision tree" = "tree",
+                             "Classification tree" = "tree",
                              "Random forest" = "randForest")),
                
                conditionalPanel(condition = "input.myModel == 'lm'",
@@ -298,11 +301,11 @@ fluidPage(
                                                     "Defense" = "defense",
                                                     "Special Attack" = "special.attack",
                                                     "Special Defense" = "special.defense",
-                                                    "Speed" = "speed"
-                                            ))),
+                                                    "Speed" = "speed")
+                                                  )),
                
                conditionalPanel(condition = "input.myModel == 'tree'",
-                                checkboxGroupInput("treeVars", "Select decision tree variables",
+                                checkboxGroupInput("treeVars", "Select classification tree variables",
                                                    c("Height" = "height",
                                                      "Weight" = "weight",
                                                      "HP" = "hp", 
@@ -310,8 +313,8 @@ fluidPage(
                                                      "Defense" = "defense",
                                                      "Special Attack" = "special.attack",
                                                      "Special Defense" = "special.defense",
-                                                     "Speed" = "speed"
-                                                   )),
+                                                     "Speed" = "speed")
+                                                   ),
                                 numericInput("treecp", "Select complexity parameter value:",
                                              0.001,
                                              min = 0.001,
@@ -329,8 +332,8 @@ fluidPage(
                                                      "Defense" = "defense",
                                                      "Special Attack" = "special.attack",
                                                      "Special Defense" = "special.defense",
-                                                     "Speed" = "speed"
-                                                   )),
+                                                     "Speed" = "speed")
+                                                   ),
                                 numericInput("randForestmtry", "Select mtry value:",
                                              1,
                                              min = 1,
@@ -349,22 +352,26 @@ fluidPage(
                selectInput("viewMoreOutput", "View more output for model:",
                            c("Generalized Linear" = "glm",
                              "Classification Tree" = "ct",
-                             "Random Forest" = "rf")),
+                             "Random Forest" = "rf")
+                           ),
                conditionalPanel("input.viewMoreOutput == 'glm'",
                                 verbatimTextOutput("confusionMatrixGLM"),
-                                verbatimTextOutput("modelSummaryGLM")),
+                                verbatimTextOutput("modelSummaryGLM")
+                                ),
                conditionalPanel("input.viewMoreOutput == 'ct'",
                                 verbatimTextOutput("confusionMatrixClassTree"),
-                                plotOutput("plotClassTree")),
+                                plotOutput("plotClassTree")
+                                ),
                conditionalPanel("input.viewMoreOutput == 'rf'",
                                 verbatimTextOutput("confusionMatrixRandomForest"),
-                                plotOutput("plotRandomForest"))
+                                plotOutput("plotRandomForest")
+                                )
                ),
       
       tabPanel("Prediction",
                h3("Prediction"),
                conditionalPanel("input.buildModels == 0",
-               h3("Build models first!")
+               h4("Build models first!")
                ),
                conditionalPanel("input.buildModels != 0",
                                 radioButtons("predictSelect", "Select prediction type:",
@@ -374,7 +381,7 @@ fluidPage(
                                 conditionalPanel("input.predictSelect == 'custom'",
                                                  div("Customize height/weight and base stats to see what the various models will predict. 
                                                      Maximum and minimum slider values reflect the overall maximum and minimum values for the 
-                                                     Pokemon used in building the models (i.e., the selected Generation). Values are present at the overall median values."),
+                                                     Pokemon used in building the models (i.e., the selected Generation). Values are initially at the overall median values."),
                                                  br(),
                                                   uiOutput("heightSlider"),
                                                   uiOutput("weightSlider"),
@@ -384,21 +391,24 @@ fluidPage(
                                                   uiOutput("specialAttackSlider"),
                                                   uiOutput("specialDefenseSlider"),
                                                   uiOutput("speedSlider"),
-                                                  tableOutput("customPokeTable")),
+                                                  tableOutput("customPokeTable")
+                                                 ),
                                 conditionalPanel("input.predictSelect == 'myType'",
                                                  div("All Pokemon of the predicted type are below. Select one to see if the models will 
                                                      correctly predict."),
                                                  br(),
                                                   uiOutput("myTypeList"),
                                                  tableOutput("rightTypePokeInfo"),
-                                                 tableOutput("rightTypePokeTable")),
+                                                 tableOutput("rightTypePokeTable")
+                                                 ),
                                 conditionalPanel("input.predictSelect == 'notMyType'",
                                                  div("All Pokemon NOT of the predicted type are below. Select one to see if the models will 
                                                      correctly predict."),
                                                  br(),
                                                  uiOutput("notMyTypeList"),
                                                  tableOutput("wrongTypePokeInfo"),
-                                                 tableOutput("wrongTypePokeTable")),
+                                                 tableOutput("wrongTypePokeTable")
+                                                 ),
                                 actionButton("predict", "Predict!")
                )
                ),
@@ -406,9 +416,10 @@ fluidPage(
       "Data",
       tabPanel("Subset and Export",
                h3("Subset and Export"),
-               h4("Create a customized subset of data, and export as a .csv with the button below:"),
+               h4("Create a customized subset of data, and export as a .csv:"),
                checkboxGroupInput("exportVars", "Select variables to include:",
-                                  choices = names(myData), selected = names(myData)),
+                                  choices = names(myData), selected = names(myData)
+                                  ),
                checkboxInput("typeFilter", "Subset using binary type variable?"),
                conditionalPanel(condition = "input.typeFilter == 1",
                                 selectInput("myTypeFilter", "Select type",
@@ -429,10 +440,13 @@ fluidPage(
                                               "Psychic" = "psychic",
                                               "Rock" = "rock",
                                               "Steel" = "steel",
-                                              "Water" = "water")),
+                                              "Water" = "water")
+                                            ),
                radioButtons("typeFilterOption", "Include or exclude selected type?",
                             c("Include (only Pokemon of selected type will be returned)" = "include",
-                              "Exclude (only Pokemon NOT of selected type will be returned)" = "exclude"))),
+                              "Exclude (only Pokemon NOT of selected type will be returned)" = "exclude")
+                            )
+               ),
                actionButton("preview", "Implement changes and preview report"),
                p(),
                conditionalPanel(condition = "input.preview",

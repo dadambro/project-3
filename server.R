@@ -6,25 +6,43 @@ function(input, output, session) {
 picNum <- sample(1:1010, 1)
 shinyNum <- sample(1:25, 1)
 if(shinyNum == 13){
-src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/", picNum, ".png")}
-else{src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")}
-output$randomPic <- renderUI({tags$img(src = src)})
+src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/", picNum, ".png")
+}
+else{src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")
+}
+output$randomPic <- renderUI({tags$img(src = src)
+  })
 picNameData <- myData %>% filter(id.number == picNum)
-if(shinyNum == 13){picName <- paste0("It's SHINY ", picNameData$name, "!")}
-else{picName <- paste0("It's ", picNameData$name, "!")}
-output$picName <- renderUI({h4(tags$strong(picName))})
+if(shinyNum == 13){picName <- paste0("It's SHINY ", picNameData$name, "!")
+}
+else{picName <- paste0("It's ", picNameData$name, "!")
+}
+output$picName <- renderUI({
+  h4(tags$strong(picName))
+  })
 
 observeEvent(input$newPic, {
   picNum <- sample(1:as.numeric(input$gens), 1)
   shinyNum <- sample(1:25, 1)
   if(shinyNum == 13){
-    src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/", picNum, ".png")}
-  else{src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")}
-  output$randomPic <- renderUI({tags$img(src = src)})
+    src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/", picNum, ".png")
+  }
+  else{
+    src <- paste0("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/", picNum, ".png")
+  }
+  output$randomPic <- renderUI({
+    tags$img(src = src)
+    })
   picNameData <- myData %>% filter(id.number == picNum)
-  if(shinyNum == 13){picName <- paste0("It's SHINY ", picNameData$name, "!")}
-  else{picName <- paste0("It's ", picNameData$name, "!")}
-  output$picName <- renderUI({h4(tags$strong(picName))})
+  if(shinyNum == 13){
+    picName <- paste0("It's SHINY ", picNameData$name, "!")
+    }
+  else{
+    picName <- paste0("It's ", picNameData$name, "!")
+    }
+  output$picName <- renderUI({
+    h4(tags$strong(picName))
+    })
 })
 ##########
 
@@ -36,7 +54,9 @@ observeEvent(input$newPic, {
       mutate(newVar = if_else(type1 == input$colorcode2 | type2 == as.character(input$colorcode2), 
                               str_to_title(input$colorcode2) , 
                               paste0("Not ", str_to_title(input$colorcode2)), 
-                              paste0("Not ", str_to_title(input$colorcode2))))
+                              paste0("Not ", str_to_title(input$colorcode2))
+                              )
+             )
     
     g <- ggplot(newData, aes_string(x = input$x.axis, y = input$y.axis))
     h <- geom_point()
@@ -49,7 +69,8 @@ observeEvent(input$newPic, {
       }
       else{
         g + h + theme_minimal()
-      }})
+      }
+    })
    
 ##Create frequency polygon
    output$freqPoly <- renderPlot({
@@ -58,7 +79,9 @@ observeEvent(input$newPic, {
        mutate(newVar = if_else(type1 == input$colorcode4 | type2 == input$colorcode4, 
                                str_to_title(input$colorcode4) , 
                                paste0("Not ", str_to_title(input$colorcode4)), 
-                               paste0("Not ", str_to_title(input$colorcode4))))
+                               paste0("Not ", str_to_title(input$colorcode4))
+                               )
+              )
      
      g <- ggplot(newData, aes_string(x = input$x.axis2, color = as.factor(newData$newVar)))
      h <- ggplot(newData, aes_string(x = input$x.axis2))
@@ -69,7 +92,8 @@ observeEvent(input$newPic, {
      }
      else{
        h + i + theme_minimal()
-     }})
+     }
+     })
 ##########
    
 #Create numeric summary
@@ -106,12 +130,14 @@ observeEvent(input$newPic, {
     
     output$trainModelTitle <- renderUI(
       h4("Warning!: No Dark-type Pokemon exist in Generation I. Please choose another type, or include Pokemon from Generation II +")
-    ) }
+    ) 
+    }
   else if(as.numeric(input$randForestmtry) > length(input$randForestVars)){
     
     output$trainModelTitle <- renderUI(
       h4("Warning!: mtry value for Random Forest is greater than the total number of variables! Please reduce this value, select more variables, or select 'auto-tune.' Note that setting mtry equal to the number of variables is technically 'bagging,' and not a random forest.")
-    ) }
+    )
+    }
   
   #Proceed with model building provided each model has at least 1 variable selected
   else{
@@ -122,12 +148,18 @@ observeEvent(input$newPic, {
                  trainSplit <- as.numeric(input$trainSplit)*0.01
                  
                  cp <- if(input$cpAuto){
-                          seq(0.001, 0.1, 0.001)}
-                      else{as.numeric(input$treecp)}
+                          seq(0.001, 0.1, 0.001)
+                       }
+                      else{
+                        as.numeric(input$treecp)
+                       }
                  
                  mtry <- if(input$mtryAuto){
-                   1:(length(input$randForestVars) - 1)}
-                 else{as.numeric(input$randForestmtry)}
+                   1:(length(input$randForestVars) - 1)
+                   }
+                 else{
+                   as.numeric(input$randForestmtry)
+                   }
                  
                  #Generate overall dataset
                  myNewData <- myData %>% filter(id.number <= as.numeric(input$gens))
@@ -135,7 +167,9 @@ observeEvent(input$newPic, {
                    mutate(myVar = if_else(type1 == input$myType | type2 == input$myType, 
                                           str_to_title(input$myType) , 
                                           paste0("Not_", str_to_title(input$myType)), 
-                                          paste0("Not_", str_to_title(input$myType))))
+                                          paste0("Not_", str_to_title(input$myType))
+                                          )
+                          )
                  myNewData$myVar <- as.factor(myNewData$myVar)
                  modData <- myNewData %>% select(height:myVar)
                  
@@ -151,7 +185,7 @@ observeEvent(input$newPic, {
                  glmmodTrain <- modTrain %>% select(myVar, all_of(input$lmVars))
                  glmmodTest <- modTest %>% select(myVar, all_of(input$lmVars))
                  
-                 #Subset for decision tree
+                 #Subset for classification tree
                  treemodTrain <- modTrain %>% select(myVar, all_of(input$treeVars))
                  treemodTest <- modTest %>% select(myVar, all_of(input$treeVars))
                  
@@ -175,9 +209,9 @@ observeEvent(input$newPic, {
                 genLinearCM <- confusionMatrix(genLinearPredict, glmmodTest$myVar, positive = str_to_title(input$myType))
                  
                  
-                 incProgress(0.25, detail = "Training Decision Tree")
+                 incProgress(0.25, detail = "Training Classification Tree")
                  
-                 #Train decision tree model
+                 #Train classification tree model
                  classTreeFit <<- train(myVar ~ ., data = treemodTrain, 
                                        method = "rpart",
                                        #preProcess = c("center", "scale"),
@@ -225,21 +259,25 @@ observeEvent(input$newPic, {
                  
                  output$trainModelTitle <- renderUI({isolate(h5(strong(paste0("Model performance on training data for type '", 
                                                                               input$myType, "' using ", input$gens, 
-                                                                              " out of a possible 1010 Pokemon:"))))})
+                                                                              " out of a possible 1010 Pokemon:"))))
+                   })
                  
-                 output$trainModelOutput <- renderTable({rbind(genLinearTable, classTreeTable, randomForestTable)})
+                 output$trainModelOutput <- renderTable({rbind(genLinearTable, classTreeTable, randomForestTable)
+                   })
                  
                  output$trainModelFootnote <- renderUI({paste0("The classification tree cp was: ", classTreeFit$bestTune[,1], 
                                                                "; the random forest mtry was: ", randomForestFit$bestTune[,1], 
                                                                ". Due to the imbalanced nature of these data, accuracy is likely misleading; 
-                                                               consult the other fit statistics below to get a better idea of model performance")})
+                                                               consult the other fit statistics below to get a better idea of model performance")
+                   })
                  
                  output$confusionMatrixGLM <- renderPrint({genLinearCM})
                  output$modelSummaryGLM <- renderPrint({summary(genLinearFit$finalModel)})
                  
                  output$confusionMatrixClassTree <- renderPrint({classTreeCM})
                  output$plotClassTree <- renderPlot({plot(classTreeFit$finalModel)
-                                                     text(classTreeFit$finalModel)})
+                                                     text(classTreeFit$finalModel)
+                                                     })
                  
                  output$confusionMatrixRandomForest <- renderPrint({randomForestCM})
                  output$plotRandomForest <- renderPlot({varImpPlot(randomForestFit$finalModel, main = NULL)})
@@ -255,42 +293,52 @@ observeEvent(input$newPic, {
                  output$testStats <- renderTable({testStatsTable})
                  
                  output$testModelTitle <- renderUI({isolate(h5(strong(paste0("Model performance on test data for type '", 
-                                                                             input$myType, "':"))))})
+                                                                             input$myType, "':"))))
+                   })
                  
                  output$glmSummary <- renderPrint({summary(genLinearFit$finalModel)})
-                 #Render UI objects for Predict tab
+                 
+                 #Render UI sliders for Predict tab
                  output$heightSlider <- renderUI(sliderInput("heightSlider", "Height:",
                                                              min = min(myNewData$height),
                                                              max = max(myNewData$height),
-                                                             value = mean(myNewData$height)))
+                                                             value = mean(myNewData$height)
+                                                             ))
                  output$weightSlider <- renderUI(sliderInput("weightSlider", "Weight:",
                                                              min = min(myNewData$weight),
                                                              max = max(myNewData$weight),
-                                                             value = mean(myNewData$weight)))
+                                                             value = mean(myNewData$weight)
+                                                             ))
                  output$attackSlider <- renderUI(sliderInput("attackSlider", "Attack:",
                                                              min = min(myNewData$attack),
                                                              max = max(myNewData$attack),
-                                                             value = mean(myNewData$attack)))
+                                                             value = mean(myNewData$attack)
+                                                             ))
                  output$defenseSlider <- renderUI(sliderInput("defenseSlider", "Defense:",
                                                              min = min(myNewData$defense),
                                                              max = max(myNewData$defense),
-                                                             value = mean(myNewData$defense)))
+                                                             value = mean(myNewData$defense)
+                                                             ))
                  output$specialAttackSlider <- renderUI(sliderInput("specialAttackSlider", "Special Attack:",
                                                              min = min(myNewData$special.attack),
                                                              max = max(myNewData$special.attack),
-                                                             value = mean(myNewData$special.attack)))
+                                                             value = mean(myNewData$special.attack)
+                                                             ))
                  output$specialDefenseSlider <- renderUI(sliderInput("specialDefenseSlider", "Special Defense:",
                                                              min = min(myNewData$special.defense),
                                                              max = max(myNewData$special.defense),
-                                                             value = mean(myNewData$special.defense)))
+                                                             value = mean(myNewData$special.defense)
+                                                             ))
                  output$speedSlider <- renderUI(sliderInput("speedSlider", "Speed:",
                                                              min = min(myNewData$speed),
                                                              max = max(myNewData$speed),
-                                                             value = mean(myNewData$speed)))
+                                                             value = mean(myNewData$speed)
+                                                            ))
                  output$hpSlider <- renderUI(sliderInput("hpSlider", "HP:",
                                                              min = min(myNewData$hp),
                                                              max = max(myNewData$hp),
-                                                             value = mean(myNewData$hp)))
+                                                             value = mean(myNewData$hp)
+                                                         ))
                  
                  typePoke <- myNewData %>% filter(myVar == str_to_title(input$myType))
                  notTypePoke <- myNewData %>% filter(myVar != str_to_title(input$myType))
@@ -398,7 +446,8 @@ observeEvent(input$preview, {
     mutate(myVar = if_else(type1 == input$myTypeFilter | type2 == input$myTypeFilter, 
                            str_to_title(input$myTypeFilter) , 
                            paste0("Not_", str_to_title(input$myTypeFilter)), 
-                           paste0("Not_", str_to_title(input$myTypeFilter))))
+                           paste0("Not_", str_to_title(input$myTypeFilter))
+                           ))
   if(input$typeFilterOption == 'include'){
     exportData <- exportData %>% filter(myVar == str_to_title(input$myTypeFilter))
   }
@@ -409,7 +458,8 @@ observeEvent(input$preview, {
   else{exportData <<- exportData %>% select(all_of(input$exportVars))}
 })
   #Make data table preview
-observeEvent(input$preview, {output$allData <- renderDataTable({exportData})})
+observeEvent(input$preview, {output$allData <- renderDataTable({exportData})
+})
  
  #Export data to .csv
 output$download <- downloadHandler(
@@ -420,10 +470,4 @@ output$download <- downloadHandler(
     write.csv(exportData, file, row.names = FALSE)
   }
 )
-
-
-#observeEvent(input$download,{
-#  fileName <- paste0("pokemon-subset-", Sys.Date(), ".csv")
-#  write.csv(exportData, file = fileName, row.names = FALSE)
-#})
 }
